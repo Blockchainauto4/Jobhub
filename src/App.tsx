@@ -15,7 +15,6 @@ import { FreelancerCalculator } from './components/FreelancerCalculator';
 import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
 import { DatabaseSettingsModal } from './components/DatabaseSettingsModal';
 import { UserProfileModal } from './components/UserProfileModal';
-import { AdminDashboard } from './components/AdminDashboard';
 import { FreelanceJob, JobApplicant, BrazilState, UserProfile } from './types';
 import { Briefcase, RefreshCw, Filter, UserCheck, GraduationCap, Tag } from 'lucide-react';
 
@@ -36,7 +35,7 @@ const USER_PROFILE_STORAGE_KEY = 'freelahub_user_profile';
 export default function App() {
   const [jobs, setJobs] = useState<FreelanceJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'jobs' | 'candidates' | 'calculator' | 'radar' | 'admin'>('jobs');
+  const [activeTab, setActiveTab] = useState<'jobs' | 'candidates' | 'calculator' | 'radar'>('jobs');
   
   // User Profile in LocalStorage (Cache)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -357,17 +356,6 @@ export default function App() {
         {/* Tab 4: Calculadora de Ganhos PIX */}
         {activeTab === 'calculator' && (
           <FreelancerCalculator />
-        )}
-
-        {/* Tab 5: Área de Administração Completa (Super Admin) */}
-        {activeTab === 'admin' && (
-          <AdminDashboard
-            jobs={jobs}
-            onRefreshJobs={fetchJobs}
-            onOpenCreateJob={() => setIsCreateModalOpen(true)}
-            onUpdateApplicantStatus={handleUpdateApplicantStatus}
-            onResetDb={handleDbReset}
-          />
         )}
 
       </main>

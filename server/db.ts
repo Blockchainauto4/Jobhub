@@ -521,36 +521,6 @@ class FreelaHubDatabase {
     return true;
   }
 
-  public deleteApplicant(jobId: string, applicantId: string): boolean {
-    const job = this.jobs.find(j => j.id === jobId);
-    if (!job || !job.applicants) return false;
-
-    const initialLen = job.applicants.length;
-    job.applicants = job.applicants.filter(a => a.id !== applicantId);
-    if (job.applicants.length !== initialLen) {
-      job.applicantsCount = job.applicants.length;
-      this.saveToFile();
-      return true;
-    }
-    return false;
-  }
-
-  public bulkUpdateApplicants(updates: Array<{ jobId: string; applicantId: string; status: JobApplicant['status']; notes?: string; paidAmount?: number }>): number {
-    let count = 0;
-    updates.forEach(u => {
-      if (this.updateApplicantStatus(u.jobId, u.applicantId, u.status, u.notes, undefined, u.paidAmount)) {
-        count++;
-      }
-    });
-    return count;
-  }
-
-  public importJobs(newJobs: FreelanceJob[]) {
-    this.jobs = newJobs;
-    this.saveToFile();
-    return this.jobs;
-  }
-
   public resetToDefault() {
     this.jobs = JSON.parse(JSON.stringify(INITIAL_JOBS));
     this.saveToFile();

@@ -11,15 +11,14 @@ import {
   Share2,
   User,
   Building2,
-  CheckCircle2,
-  ShieldCheck
+  CheckCircle2
 } from 'lucide-react';
 import { FreelanceJob, UserProfile } from '../types';
 import { formatCurrency } from '../utils/formatters';
 
 interface NavbarProps {
-  activeTab: 'jobs' | 'candidates' | 'calculator' | 'radar' | 'admin';
-  setActiveTab: (tab: 'jobs' | 'candidates' | 'calculator' | 'radar' | 'admin') => void;
+  activeTab: 'jobs' | 'candidates' | 'calculator' | 'radar';
+  setActiveTab: (tab: 'jobs' | 'candidates' | 'calculator' | 'radar') => void;
   jobs: FreelanceJob[];
   userProfile: UserProfile | null;
   onOpenUserProfile: () => void;
@@ -209,22 +208,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calculator className="w-4 h-4" />
             <span>Calculadora de Ganhos PIX</span>
-          </button>
-
-          <button
-            id="tab-admin"
-            onClick={() => setActiveTab('admin')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap ${
-              activeTab === 'admin'
-                ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30 font-bold'
-                : 'text-emerald-400/90 hover:text-emerald-300 hover:bg-slate-900 border border-emerald-500/30'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Painel Admin</span>
-            <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-emerald-950 text-emerald-300 border border-emerald-500/40">
-              PRO
-            </span>
           </button>
         </div>
 
