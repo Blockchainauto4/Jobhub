@@ -137,8 +137,11 @@ function parseWithRegex(rawText: string): Partial<FreelanceJob> {
   else if (lower.includes('bar') || lower.includes('drink') || lower.includes('coquetel') || lower.includes('cozinha') || lower.includes('garçom') || lower.includes('garcom') || lower.includes('atendente')) category = 'Bares & Restaurantes';
   else if (lower.includes('event') || lower.includes('fest') || lower.includes('show') || lower.includes('casamento')) category = 'Eventos & Festas';
 
+  const city = 'São Paulo';
+  const neighborhood = 'Centro';
+
   return {
-    title: `${role} - ${locationAddress.split(',')[0]}`,
+    title: `${role} - ${neighborhood}, ${city}`,
     role,
     category,
     slotsTotal,
@@ -152,8 +155,9 @@ function parseWithRegex(rawText: string): Partial<FreelanceJob> {
     dressCode,
     locationName: locationAddress.split(',')[0] || 'Local do Evento',
     locationAddress,
+    state: 'SP',
+    city: 'São Paulo',
     neighborhood: 'São Paulo',
-    city: 'São Paulo - SP',
     googleMapsUrl,
     contactPhone,
     contactName: 'Coordenação FreelaHub',
@@ -168,6 +172,7 @@ export function generateWhatsAppBroadcast(job: FreelanceJob): string {
   const slotsTxt = job.slotsTotal > 1 ? ` (${job.slotsAvailable}/${job.slotsTotal} vagas)` : ` (${job.slotsTotal} vaga)`;
   
   const cachetFmt = Number(job.cachet).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const locationLine = `${job.neighborhood || ''}${job.neighborhood && job.city ? ', ' : ''}${job.city || ''} (${job.state || 'SP'})`;
 
   return `${urgentTag}💼 Função: ${job.role}${slotsTxt}
 
@@ -176,7 +181,7 @@ export function generateWhatsAppBroadcast(job: FreelanceJob): string {
 💰 Cachê: R$ ${cachetFmt} (${job.paymentDetails})
 ${job.benefits ? `🍔 Benefícios: ${job.benefits}\n` : ''}👕 Vestimenta: ${job.dressCode}
 
-📍 Local: ${job.locationName ? `${job.locationName} - ` : ''}${job.locationAddress}
+📍 Local: ${job.locationName ? `${job.locationName} - ` : ''}${job.locationAddress} (${locationLine})
 
 🗺️ Traçar rota no Maps:
 ${job.googleMapsUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(job.locationAddress)}`}

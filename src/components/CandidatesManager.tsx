@@ -6,13 +6,14 @@ import {
   Phone, 
   DollarSign, 
   Clock, 
-  MapPin, 
   Search, 
   Check, 
   Copy, 
-  QrCode, 
   Sparkles,
-  AlertCircle
+  Tag,
+  Award,
+  MapPin,
+  X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { FreelanceJob, JobApplicant } from '../types';
@@ -50,12 +51,14 @@ export const CandidatesManager: React.FC<CandidatesManagerProps> = ({
     if (statusFilter !== 'all' && applicant.status !== statusFilter) return false;
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
+      const skillsMatch = applicant.skills?.some(s => s.toLowerCase().includes(q));
       return (
         applicant.name.toLowerCase().includes(q) ||
         applicant.whatsapp.toLowerCase().includes(q) ||
         applicant.pixKey.toLowerCase().includes(q) ||
         job.role.toLowerCase().includes(q) ||
-        job.title.toLowerCase().includes(q)
+        job.title.toLowerCase().includes(q) ||
+        Boolean(skillsMatch)
       );
     }
     return true;
@@ -86,13 +89,13 @@ Confirmamos sua escalação no *FreelaHub* para a vaga de *${candidate.job.role}
 📅 *Data:* ${candidate.job.date}
 ⏰ *Horário:* Das ${candidate.job.startTime} às ${candidate.job.endTime}
 💰 *Cachê:* ${formatCurrency(candidate.job.cachet)} (${candidate.job.paymentDetails})
+📍 *Local:* ${candidate.job.locationAddress} (${candidate.job.neighborhood || ''}, ${candidate.job.city || ''} - ${candidate.job.state || 'SP'})
 👔 *Vestimenta:* ${candidate.job.dressCode}
-📍 *Local:* ${candidate.job.locationAddress}
 
 🗺️ *Traçar Rota no Maps:*
 ${candidate.job.googleMapsUrl}
 
-Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
+Por favor, responda com *"CONFIRMADO"* para garantirmos sua presença!`;
 
     window.open(createWhatsAppLink(candidate.applicant.whatsapp, text), '_blank');
   };
@@ -123,26 +126,32 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
               <Users className="w-4 h-4" />
-              <span>Painel do Contratante / Produtor</span>
+              <span>Painel de Produtores & Gestão de Talentos</span>
             </div>
             <h2 className="text-2xl font-black text-white">
-              Gestão de Candidatos & Confirmação de Presença
+              Gestão de Candidatos & Triagem
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Aprove inscrições, confirme horários via WhatsApp, valide presença e realize o pagamento via PIX no término.
+              Aprove inscrições, confira qualificações e cursos específicos e realize pagamentos via PIX no encerramento do evento.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-xl font-black text-emerald-400">{allCandidates.length}</div>
-              <div className="text-[10px] uppercase font-bold text-slate-400">Total Inscritos</div>
+              <div className="text-[10px] uppercase font-bold text-slate-400">Inscritos</div>
             </div>
             <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-xl font-black text-cyan-400">
                 {allCandidates.filter(c => c.applicant.status === 'accepted' || c.applicant.status === 'checked_in').length}
               </div>
               <div className="text-[10px] uppercase font-bold text-slate-400">Escalados</div>
+            </div>
+            <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-center">
+              <div className="text-xl font-black text-purple-400">
+                {allCandidates.filter(c => c.applicant.status === 'paid').length}
+              </div>
+              <div className="text-[10px] uppercase font-bold text-slate-400">PIX Pago</div>
             </div>
           </div>
         </div>
@@ -159,7 +168,7 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
               <option value="all">Todas as Vagas ({jobs.length})</option>
               {jobs.map(j => (
                 <option key={j.id} value={j.id}>
-                  {j.role} - {j.locationName || j.neighborhood} ({j.applicants?.length || 0} inscritos)
+                  {j.role} - {j.neighborhood || j.city} ({j.applicants?.length || 0} inscritos)
                 </option>
               ))}
             </select>
@@ -175,19 +184,19 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
               <option value="all">Todos os Status</option>
               <option value="pending">🟡 Pendente de Avaliação</option>
               <option value="accepted">🟢 Aprovado / Escalado</option>
-              <option value="checked_in">🔵 Presença Confirmada no Local</option>
+              <option value="checked_in">🔵 Presença Confirmada</option>
               <option value="paid">💰 PIX Pago</option>
               <option value="rejected">🔴 Recusado</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-400 mb-1">Buscar Candidato:</label>
+            <label className="block text-xs font-bold text-slate-400 mb-1">Buscar por Nome / Habilidade:</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Nome, WhatsApp ou Chave PIX..."
+                placeholder="Ex: Carlos, Coquetelaria, Bandeja, PIX..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
@@ -213,6 +222,8 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
             const isPaid = applicant.status === 'paid';
             const isCheckedIn = applicant.status === 'checked_in';
 
+            const applicantLocation = `${applicant.neighborhood ? `${applicant.neighborhood}, ` : ''}${applicant.city || 'São Paulo'} - ${applicant.state || 'SP'}`;
+
             return (
               <div 
                 key={applicant.id}
@@ -221,9 +232,15 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
                 {/* Card Top */}
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-lg font-bold text-white">{applicant.name}</h3>
                       
+                      {/* Locality badge: Bairro, Cidade - UF */}
+                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-950 text-slate-300 border border-slate-700">
+                        <MapPin className="w-3 h-3 text-cyan-400" />
+                        <span>{applicantLocation}</span>
+                      </span>
+
                       {applicant.status === 'pending' && (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                           Pendente
@@ -261,6 +278,52 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
                     <span className="text-[11px] text-slate-500 font-mono">{job.startTime} às {job.endTime}</span>
                   </div>
                 </div>
+
+                {/* Candidate Skills Tags */}
+                {applicant.skills && applicant.skills.length > 0 && (
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-400 mb-1 flex items-center gap-1">
+                      <Tag className="w-3 h-3 text-emerald-400" />
+                      <span>Habilidades Comprovadas:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {applicant.skills.map((skill, idx) => (
+                        <span key={idx} className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-950 text-slate-300 border border-slate-800">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Candidate Certifications & Compliance */}
+                {applicant.certifications && applicant.certifications.length > 0 && (
+                  <div className="p-2.5 rounded-xl bg-amber-950/20 border border-amber-500/30">
+                    <div className="text-[11px] font-bold text-amber-300 mb-1.5 flex items-center gap-1.5">
+                      <Award className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Cursos & Certificações do Candidato:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {applicant.certifications.map((cert, idx) => {
+                        const isRequiredByJob = job.requiredCertifications?.includes(cert);
+                        return (
+                          <span
+                            key={idx}
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded border flex items-center gap-1 ${
+                              isRequiredByJob
+                                ? 'bg-emerald-500/30 text-emerald-300 border-emerald-500/50'
+                                : 'bg-slate-950 text-amber-200 border-amber-500/30'
+                            }`}
+                          >
+                            <span>{isRequiredByJob ? '✓' : '📜'}</span>
+                            <span>{cert}</span>
+                            {isRequiredByJob && <span className="text-[9px] text-emerald-400 font-extrabold">(Exigido)</span>}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Info Box */}
                 <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2 text-slate-300">
@@ -300,7 +363,7 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
                     <>
                       <button
                         onClick={() => handleStatusChange(job.id, applicant.id, 'accepted')}
-                        className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition"
+                        className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 transition shadow-sm"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Aprovar</span>
@@ -356,64 +419,63 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua vaga!`;
 
       {/* PIX Payment Modal */}
       {pixModalApplicant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="relative w-full max-w-md rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-6 text-slate-100">
-            
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-              <Sparkles className="w-4 h-4" />
-              <span>Checkout PIX Freelancer</span>
+            <button
+              onClick={() => setPixModalApplicant(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center space-y-2 mb-5">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500 flex items-center justify-center mx-auto">
+                <DollarSign className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black text-white">Transferência PIX</h3>
+              <p className="text-xs text-slate-400">
+                Pague o cachê de {formatCurrency(pixModalApplicant.job.cachet)} para {pixModalApplicant.applicant.name}
+              </p>
             </div>
 
-            <h3 className="text-2xl font-black text-white mb-1">
-              Pagar Cachê: {formatCurrency(pixModalApplicant.job.cachet)}
-            </h3>
-            <p className="text-xs text-slate-400 mb-5">
-              Profissional: <strong className="text-white">{pixModalApplicant.applicant.name}</strong> • {pixModalApplicant.job.role}
-            </p>
-
-            {/* Key Copy Box */}
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3 mb-5">
-              <div>
-                <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold mb-1">
-                  Tipo de Chave ({pixModalApplicant.applicant.pixType.toUpperCase()}):
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-slate-900 border border-slate-700 font-mono text-sm text-emerald-400 select-all">
-                  <span className="truncate">{pixModalApplicant.applicant.pixKey}</span>
+            <div className="space-y-3 p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Favorecido:</span>
+                <span className="font-bold text-white">{pixModalApplicant.applicant.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Tipo de Chave:</span>
+                <span className="uppercase text-slate-300 font-bold">{pixModalApplicant.applicant.pixType}</span>
+              </div>
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                <span className="text-slate-400">Chave PIX:</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-emerald-400 font-bold">{pixModalApplicant.applicant.pixKey}</span>
                   <button
                     onClick={() => handleCopyPix(pixModalApplicant.applicant.pixKey)}
-                    className="ml-2 p-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800"
-                    title="Copiar Chave PIX"
+                    className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px]"
+                    title="Copiar PIX"
                   >
-                    {pixCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    {pixCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between text-xs text-slate-300">
-                <span>Valor a transferir:</span>
-                <span className="font-black text-emerald-400 text-base">
-                  {formatCurrency(pixModalApplicant.job.cachet)}
-                </span>
-              </div>
             </div>
 
-            <div className="space-y-2.5">
-              <button
-                onClick={handleConfirmPixPayment}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 font-black text-sm shadow-md shadow-emerald-500/20 transition"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Confirmar Pagamento Realizado</span>
-              </button>
-
+            <div className="flex gap-2 mt-5">
               <button
                 onClick={() => setPixModalApplicant(null)}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300"
               >
                 Cancelar
               </button>
+              <button
+                onClick={handleConfirmPixPayment}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 text-slate-950 font-black text-xs hover:from-emerald-300 hover:to-green-400 shadow-md shadow-emerald-500/20"
+              >
+                Confirmar PIX Pago
+              </button>
             </div>
-
           </div>
         </div>
       )}

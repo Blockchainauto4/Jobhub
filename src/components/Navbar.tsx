@@ -8,15 +8,21 @@ import {
   Sparkles,
   MapPin,
   TrendingUp,
-  Share2
+  Share2,
+  User,
+  Building2,
+  CheckCircle2,
+  ShieldCheck
 } from 'lucide-react';
-import { FreelanceJob } from '../types';
+import { FreelanceJob, UserProfile } from '../types';
 import { formatCurrency } from '../utils/formatters';
 
 interface NavbarProps {
-  activeTab: 'jobs' | 'candidates' | 'calculator' | 'radar';
-  setActiveTab: (tab: 'jobs' | 'candidates' | 'calculator' | 'radar') => void;
+  activeTab: 'jobs' | 'candidates' | 'calculator' | 'radar' | 'admin';
+  setActiveTab: (tab: 'jobs' | 'candidates' | 'calculator' | 'radar' | 'admin') => void;
   jobs: FreelanceJob[];
+  userProfile: UserProfile | null;
+  onOpenUserProfile: () => void;
   onOpenCreateJob: () => void;
   onOpenDbSettings: () => void;
 }
@@ -25,6 +31,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
   jobs,
+  userProfile,
+  onOpenUserProfile,
   onOpenCreateJob,
   onOpenDbSettings
 }) => {
@@ -36,6 +44,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const totalApplicants = jobs.reduce((sum, j) => sum + (j.applicants?.length || 0), 0);
 
+  const displayName = userProfile?.companyName || userProfile?.name || 'Ficha Profissional';
+  const isProfileConfigured = Boolean(userProfile?.name && userProfile?.phone);
+
   return (
     <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-emerald-900/40 shadow-lg shadow-black/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,11 +54,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           {/* Logo Brand */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('jobs')}>
-            <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-green-600 shadow-md shadow-emerald-500/20 text-slate-950 font-black text-xl tracking-tighter">
-              <span className="font-extrabold text-2xl tracking-tighter text-slate-950">FH</span>
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+            <div className="relative flex items-center justify-center w-11 h-11 rounded-xl overflow-hidden bg-slate-900 border border-emerald-500/40 shadow-lg shadow-emerald-500/10">
+              <img 
+                src="/freelahub_logo.png" 
+                alt="FreelaHub Logo" 
+                className="w-full h-full object-cover" 
+                referrerPolicy="no-referrer"
+              />
+              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border border-slate-900"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-slate-950"></span>
               </span>
             </div>
             
@@ -55,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="flex items-center gap-1.5">
                 <span className="text-2xl font-black tracking-tight text-white">Freela<span className="text-emerald-400">Hub</span></span>
                 <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                  PRO
+                  OFICIAL
                 </span>
               </div>
               <span className="text-[11px] font-medium text-slate-400 tracking-wider hidden sm:block">
@@ -85,7 +101,33 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* User Profile / Ficha Profissional Button */}
+            <button
+              id="btn-user-profile"
+              onClick={onOpenUserProfile}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition ${
+                isProfileConfigured
+                  ? 'bg-slate-900 hover:bg-slate-800 text-emerald-300 border-emerald-500/30'
+                  : 'bg-emerald-950/60 hover:bg-emerald-900 text-emerald-400 border-emerald-500 animate-pulse'
+              }`}
+              title="Ver e editar sua Ficha Profissional / Empresa em cache"
+            >
+              <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                {userProfile?.userType === 'contractor' ? (
+                  <Building2 className="w-3 h-3 text-emerald-400" />
+                ) : (
+                  <User className="w-3 h-3 text-emerald-400" />
+                )}
+              </div>
+              <span className="max-w-[120px] truncate hidden sm:inline">
+                {isProfileConfigured ? displayName : 'Criar Perfil'}
+              </span>
+              {isProfileConfigured && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              )}
+            </button>
+
             <button
               id="btn-db-settings"
               onClick={onOpenDbSettings}
@@ -167,6 +209,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calculator className="w-4 h-4" />
             <span>Calculadora de Ganhos PIX</span>
+          </button>
+
+          <button
+            id="tab-admin"
+            onClick={() => setActiveTab('admin')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap ${
+              activeTab === 'admin'
+                ? 'bg-emerald-500 text-slate-950 shadow-sm shadow-emerald-500/30 font-bold'
+                : 'text-emerald-400/90 hover:text-emerald-300 hover:bg-slate-900 border border-emerald-500/30'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Painel Admin</span>
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-emerald-950 text-emerald-300 border border-emerald-500/40">
+              PRO
+            </span>
           </button>
         </div>
 

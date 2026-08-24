@@ -1,41 +1,135 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, ShieldCheck, AlertCircle, Phone, ArrowRight, Sparkles } from 'lucide-react';
+import { X, CheckCircle2, Phone, ArrowRight, Tag, Plus, Check, GraduationCap } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { FreelanceJob } from '../types';
+import { FreelanceJob, BrazilState, UserProfile } from '../types';
 import { formatCurrency, createWhatsAppLink } from '../utils/formatters';
+import { BRAZIL_STATES, POPULAR_NEIGHBORHOODS_BY_CITY } from '../data/brazilLocations';
 
 interface ApplyModalProps {
   job: FreelanceJob | null;
   onClose: () => void;
+  userProfile?: UserProfile | null;
   onSubmitApplication: (jobId: string, applicationData: {
     name: string;
     whatsapp: string;
     pixKey: string;
     pixType: 'cpf' | 'email' | 'phone' | 'random';
     experienceSummary: string;
+    skills?: string[];
+    certifications?: string[];
+    equipmentOwned?: string[];
+    state?: BrazilState;
+    city?: string;
+    neighborhood?: string;
   }) => Promise<void>;
 }
+
+const COMMON_SKILLS_POOL = [
+  'Pontualidade & Compromisso',
+  'Bandeja Alta & Salão',
+  'Coquetelaria & Bar',
+  'Operador de Caixa & Sangria',
+  'Higienização & Limpeza Rápida',
+  'Carga Pesada 50kg+',
+  'Atendimento VIP',
+  'Auxiliar de Chapa / Grelha',
+  'Inglês Básico',
+  'Montagem de Palco / DMX',
+  'Abertura de Vinhos'
+];
 
 export const ApplyModal: React.FC<ApplyModalProps> = ({
   job,
   onClose,
+  userProfile,
   onSubmitApplication
 }) => {
-  const [name, setName] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [pixType, setPixType] = useState<'cpf' | 'email' | 'phone' | 'random'>('cpf');
-  const [pixKey, setPixKey] = useState('');
-  const [experienceSummary, setExperienceSummary] = useState('');
+  const [name, setName] = useState(userProfile?.name || '');
+  const [whatsapp, setWhatsapp] = useState(userProfile?.phone || '');
+  const [pixType, setPixType] = useState<'cpf' | 'email' | 'phone' | 'random'>(userProfile?.pixType || 'phone');
+  const [pixKey, setPixKey] = useState(userProfile?.pixKey || userProfile?.phone || '');
+  
+  // Locality: State, City, Neighborhood
+  const [state, setState] = useState<BrazilState>(userProfile?.state || job?.state || 'SP');
+  const [city, setCity] = useState<string>(userProfile?.city || job?.city || 'São Paulo');
+  const [neighborhood, setNeighborhood] = useState<string>(userProfile?.neighborhood || job?.neighborhood || 'Centro');
+  
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(
+    userProfile?.skills && userProfile.skills.length > 0 
+      ? userProfile.skills 
+      : ['Pontualidade & Compromisso', job?.role ? `Especialista em ${job.role}` : 'Experiência em Eventos']
+  );
+  const [customSkillInput, setCustomSkillInput] = useState('');
+  const [selectedCertifications, setSelectedCertifications] = useState<string[]>(
+    userProfile?.certifications || []
+  );
+  const [customCertInput, setCustomCertInput] = useState('');
+  const [experienceSummary, setExperienceSummary] = useState(userProfile?.bio || '');
   const [agreedDressCode, setAgreedDressCode] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successSubmitted, setSuccessSubmitted] = useState(false);
 
+  const selectedStateInfo = BRAZIL_STATES.find(s => s.uf === state);
+  const citySuggestions = selectedStateInfo?.popularCities || ['São Paulo'];
+  const neighborhoodSuggestions = POPULAR_NEIGHBORHOODS_BY_CITY[city] || ['Centro', 'Jardins', 'Vila Madalena', 'Santana'];
+
+  // Sync when userProfile or job changes
+  React.useEffect(() => {
+    if (userProfile) {
+      if (userProfile.name) setName(userProfile.name);
+      if (userProfile.phone) setWhatsapp(userProfile.phone);
+      if (userProfile.pixKey) setPixKey(userProfile.pixKey);
+      if (userProfile.pixType) setPixType(userProfile.pixType);
+      if (userProfile.state) setState(userProfile.state);
+      if (userProfile.city) setCity(userProfile.city);
+      if (userProfile.neighborhood) setNeighborhood(userProfile.neighborhood);
+      if (userProfile.skills && userProfile.skills.length > 0) setSelectedSkills(userProfile.skills);
+      if (userProfile.certifications) setSelectedCertifications(userProfile.certifications);
+      if (userProfile.bio) setExperienceSummary(userProfile.bio);
+    }
+  }, [userProfile, job]);
+
   if (!job) return null;
+
+  const toggleSkill = (skill: string) => {
+    if (selectedSkills.includes(skill)) {
+      setSelectedSkills(selectedSkills.filter(s => s !== skill));
+    } else {
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+  };
+
+  const handleAddCustomSkill = (e: React.KeyboardEvent | React.MouseEvent) => {
+    if (customSkillInput.trim() && !selectedSkills.includes(customSkillInput.trim())) {
+      setSelectedSkills([...selectedSkills, customSkillInput.trim()]);
+      setCustomSkillInput('');
+    }
+  };
+
+  const toggleCert = (cert: string) => {
+    if (selectedCertifications.includes(cert)) {
+      setSelectedCertifications(selectedCertifications.filter(c => c !== cert));
+    } else {
+      setSelectedCertifications([...selectedCertifications, cert]);
+    }
+  };
+
+  const handleAddCustomCert = (e: React.KeyboardEvent | React.MouseEvent) => {
+    if (customCertInput.trim() && !selectedCertifications.includes(customCertInput.trim())) {
+      setSelectedCertifications([...selectedCertifications, customCertInput.trim()]);
+      setCustomCertInput('');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !whatsapp || !pixKey) {
       alert('Por favor, preencha seu Nome, WhatsApp e Chave PIX.');
+      return;
+    }
+
+    if (!city || !neighborhood) {
+      alert('Por favor, informe sua Cidade e Bairro.');
       return;
     }
 
@@ -51,6 +145,11 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
         whatsapp,
         pixKey,
         pixType,
+        state,
+        city,
+        neighborhood,
+        skills: selectedSkills,
+        certifications: selectedCertifications,
         experienceSummary: experienceSummary || 'Tenho total disponibilidade para o horário e função solicitada.'
       });
 
@@ -68,13 +167,11 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
     }
   };
 
-  const handleOpenDirectWhatsApp = () => {
-    const text = `Olá! Acabei de me candidatar no FreelaHub para a vaga de *${job.role}* para *${job.date}* (${job.startTime} às ${job.endTime}).\n\n👤 *Meu Nome:* ${name}\n📱 *WhatsApp:* ${whatsapp}\n💳 *Chave PIX:* ${pixKey} (${pixType.toUpperCase()})\n👔 *Vestimenta:* Confirmada de acordo com o anúncio.\n\nEstou à disposição para confirmação da vaga!`;
-    window.open(createWhatsAppLink(job.contactPhone, text), '_blank');
-  };
+  const whatsappMessage = `Olá! Me candidatei no FreelaHub para a vaga de *${job.role}* do dia *${job.date}* (${job.startTime} às ${job.endTime}).\n\nNome: ${name}\nLocalidade: ${neighborhood}, ${city} - ${state}\nPIX cadastrado: ${pixKey} (${pixType.toUpperCase()})\n\nEstou confirmado e pronto com a vestimenta (${job.dressCode})!`;
+  const whatsappUrl = createWhatsAppLink(job.contactPhone, whatsappMessage);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
       <div className="relative w-full max-w-lg rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-6 text-slate-100 my-8">
         
         {/* Close Button */}
@@ -86,168 +183,301 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
         </button>
 
         {successSubmitted ? (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500 text-emerald-400 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-9 h-9" />
+          <div className="text-center py-6 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-8 h-8" />
             </div>
 
-            <h3 className="text-2xl font-black text-white mb-2">
-              Candidatura Enviada!
-            </h3>
-            <p className="text-sm text-slate-300 mb-6 max-w-sm mx-auto">
-              Seus dados foram registrados com sucesso para a vaga de <strong className="text-emerald-400">{job.role}</strong> no valor de <strong className="text-emerald-400">{formatCurrency(job.cachet)}</strong>.
+            <div>
+              <h3 className="text-2xl font-black text-white">Candidatura Enviada!</h3>
+              <p className="text-sm text-slate-300 mt-1">
+                Seus dados foram registrados com sucesso no sistema.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-left space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Vaga:</span>
+                <span className="font-bold text-white">{job.role}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Local:</span>
+                <span className="text-slate-200">{job.neighborhood || ''}, {job.city || ''} ({job.state || 'SP'})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Cachê Previsto:</span>
+                <span className="font-bold text-emerald-400">{formatCurrency(job.cachet)} ({job.paymentDetails})</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              Para acelerar sua confirmação imediata, envie uma mensagem direta no WhatsApp do contratante:
             </p>
 
-            <div className="space-y-3">
-              <button
-                onClick={handleOpenDirectWhatsApp}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-black text-sm transition shadow-lg shadow-emerald-500/20"
+            <div className="pt-2 flex flex-col gap-2">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 font-black text-sm shadow-lg shadow-green-500/20 transition transform active:scale-95"
               >
                 <Phone className="w-4 h-4" />
-                <span>Confirmar Vaga Direto no WhatsApp</span>
-              </button>
+                <span>Avisar no WhatsApp do Contratante</span>
+              </a>
 
               <button
+                type="button"
                 onClick={onClose}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
+                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition"
               >
-                Voltar ao Mural de Vagas
+                Fechar e Ver Mais Vagas
               </button>
             </div>
           </div>
         ) : (
-          <div>
-            {/* Header */}
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-              <Sparkles className="w-4 h-4" />
-              <span>Candidatura Rápida FreelaHub</span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Candidatar-se à Vaga</span>
+              <h2 className="text-xl font-black text-white mt-0.5">{job.role}</h2>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-1">
+                <span>📍 {job.neighborhood || ''}, {job.city || ''} ({job.state || 'SP'})</span>
+                <span>•</span>
+                <span className="font-bold text-emerald-400">{formatCurrency(job.cachet)}</span>
+              </div>
             </div>
-            <h2 className="text-2xl font-black text-white mb-1">
-              Candidatar-se: {job.role}
-            </h2>
-            <p className="text-xs text-slate-400 mb-5">
-              Cachê: <span className="text-emerald-400 font-bold">{formatCurrency(job.cachet)}</span> ({job.paymentDetails}) • {job.date}
-            </p>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              
+            {/* Candidate Name & Phone */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Nome Completo *
+                  Seu Nome Completo *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Carlos Eduardo da Silva"
+                  placeholder="Carlos Silva"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    WhatsApp com DDD *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="(11) 98765-4321"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Tipo de Chave PIX *
-                  </label>
-                  <select
-                    value={pixType}
-                    onChange={(e: any) => setPixType(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
-                  >
-                    <option value="cpf">CPF</option>
-                    <option value="phone">Celular</option>
-                    <option value="email">E-mail</option>
-                    <option value="random">Chave Aleatória</option>
-                  </select>
-                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Chave PIX (para receber o pagamento) *
+                  Seu WhatsApp com DDD *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="(11) 98765-4321"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+            </div>
+
+            {/* Candidate Locality: Estado, Cidade e Bairro */}
+            <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+              <div className="text-[11px] font-bold text-cyan-400">
+                📍 Onde Você Reside (Estado, Cidade e Bairro)
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                    Estado (UF) *
+                  </label>
+                  <select
+                    value={state}
+                    onChange={(e) => {
+                      const newUf = e.target.value as BrazilState;
+                      setState(newUf);
+                      const stInfo = BRAZIL_STATES.find(s => s.uf === newUf);
+                      if (stInfo && stInfo.popularCities[0]) {
+                        setCity(stInfo.popularCities[0]);
+                      }
+                    }}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500 font-bold"
+                  >
+                    {BRAZIL_STATES.map(st => (
+                      <option key={st.uf} value={st.uf}>{st.uf}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                    Cidade *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: São Paulo"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    list="candidate-cities-list"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                  <datalist id="candidate-cities-list">
+                    {citySuggestions.map(c => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                    Bairro *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Pinheiros, Centro"
+                    value={neighborhood}
+                    onChange={(e) => setNeighborhood(e.target.value)}
+                    list="candidate-neighborhoods-list"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                  <datalist id="candidate-neighborhoods-list">
+                    {neighborhoodSuggestions.map(n => (
+                      <option key={n} value={n} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+            </div>
+
+            {/* PIX Key */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Tipo de Chave PIX *
+                </label>
+                <select
+                  value={pixType}
+                  onChange={(e) => setPixType(e.target.value as any)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="phone">Telefone</option>
+                  <option value="cpf">CPF</option>
+                  <option value="email">E-mail</option>
+                  <option value="random">Chave Aleatória (EVP)</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Chave PIX para Recebimento *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Digite sua chave PIX exata"
+                  placeholder="Sua chave PIX para receber o cachê"
                   value={pixKey}
                   onChange={(e) => setPixKey(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500 font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-emerald-400 font-mono text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Experiência ou Observações (Opcional)
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Ex: Já trabalhei em eventos na região, tenho pontualidade e agilidade..."
-                  value={experienceSummary}
-                  onChange={(e) => setExperienceSummary(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500"
-                ></textarea>
-              </div>
-
-              {/* Dress Code Notice */}
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2">
-                <div className="flex items-start gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold text-white">Exigência de Vestimenta:</span>
-                    <p className="text-slate-300">{job.dressCode}</p>
-                  </div>
+            {/* Cursos e Certificados do Candidato */}
+            {job.requiredCertifications && job.requiredCertifications.length > 0 && (
+              <div className="p-3 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Certificados Exigidos nesta Vaga:</span>
                 </div>
-                
-                <label className="flex items-center gap-2 cursor-pointer pt-1">
-                  <input
-                    type="checkbox"
-                    checked={agreedDressCode}
-                    onChange={(e) => setAgreedDressCode(e.target.checked)}
-                    className="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-900"
-                  />
-                  <span className="text-slate-300 text-xs font-medium">
-                    Declaro que tenho a vestimenta e chegarei 15 minutos antes.
-                  </span>
-                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {job.requiredCertifications.map(reqCert => {
+                    const hasCert = selectedCertifications.includes(reqCert);
+                    return (
+                      <button
+                        type="button"
+                        key={reqCert}
+                        onClick={() => toggleCert(reqCert)}
+                        className={`text-xs px-2.5 py-1 rounded-lg transition border flex items-center gap-1 ${
+                          hasCert
+                            ? 'bg-amber-500/30 text-amber-200 border-amber-500 font-bold'
+                            : 'bg-slate-950 text-slate-400 border-slate-700 hover:text-white'
+                        }`}
+                      >
+                        <span>{hasCert ? '✓ Tenho:' : '+ Tenho:'}</span>
+                        <span>{reqCert}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+            )}
 
-              {/* Submit */}
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 font-black text-sm shadow-md shadow-emerald-500/20 transition transform active:scale-95 disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <span>Registrando...</span>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Confirmar Minha Candidatura</span>
-                    </>
-                  )}
-                </button>
+            {/* Skills & Experience */}
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Habilidades & Diferenciais (Clique para marcar):
+              </label>
+              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-1 bg-slate-950 rounded-xl border border-slate-800">
+                {COMMON_SKILLS_POOL.map(skill => {
+                  const isSel = selectedSkills.includes(skill);
+                  return (
+                    <button
+                      type="button"
+                      key={skill}
+                      onClick={() => toggleSkill(skill)}
+                      className={`px-2 py-0.5 rounded-lg text-[11px] font-semibold transition flex items-center gap-1 ${
+                        isSel
+                          ? 'bg-emerald-500 text-slate-950'
+                          : 'bg-slate-900 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {isSel && <Check className="w-3 h-3" />}
+                      <span>{skill}</span>
+                    </button>
+                  );
+                })}
               </div>
+            </div>
 
-            </form>
-          </div>
+            {/* Experience Summary */}
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1">
+                Breve Resumo da sua Experiência (Opcional):
+              </label>
+              <textarea
+                rows={2}
+                placeholder="Ex: 3 anos de experiência em buffet e casamentos, pontual e ágil..."
+                value={experienceSummary}
+                onChange={(e) => setExperienceSummary(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            {/* Dress code agreement */}
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-start gap-2.5">
+              <input
+                type="checkbox"
+                id="dresscode-agree"
+                checked={agreedDressCode}
+                onChange={(e) => setAgreedDressCode(e.target.checked)}
+                className="mt-0.5 rounded text-emerald-500 focus:ring-emerald-500 w-4 h-4"
+              />
+              <label htmlFor="dresscode-agree" className="text-xs text-slate-300 cursor-pointer">
+                <span className="font-bold text-white">Confirmo que possuo a vestimenta exigida:</span> {job.dressCode}
+              </label>
+            </div>
+
+            {/* Submit */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 font-black text-sm shadow-md shadow-emerald-500/20 transition transform active:scale-95 disabled:opacity-50"
+              >
+                <span>{isSubmitting ? 'Gravando...' : 'Confirmar Candidatura'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+
+          </form>
         )}
 
       </div>

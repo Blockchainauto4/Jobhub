@@ -1,6 +1,6 @@
 {
   "name": "FreelaHub",
-  "description": "Plataforma otimizada para organização, publicação e gestão de serviços freelancers e vagas em tempo real.",
+  "description": "FreelaHub Brasil: Plataforma de Vagas Freelancer para Eventos, Bares, Gastronomia, Finanças, Logística e Serviços com Pagamento Imediato via PIX, Rotas no Google Maps e Filtragem por Estado, Cidade e Bairro.",
   "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Navigation, ExternalLink, Compass, ShieldCheck, Clock, Users, ArrowRight } from 'lucide-react';
+import { MapPin, Navigation, ExternalLink, Compass, ArrowRight } from 'lucide-react';
 import { FreelanceJob } from '../types';
 import { formatCurrency, createGoogleMapsDirectionsLink, createWazeLink } from '../utils/formatters';
 
@@ -13,45 +13,72 @@ export const InteractiveMapRadar: React.FC<InteractiveMapRadarProps> = ({
   onSelectJob
 }) => {
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>('all');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
 
-  // Extract unique neighborhoods/regions
-  const neighborhoods = Array.from(new Set(jobs.map(j => j.neighborhood || 'São Paulo')));
+  // Extract unique cities & neighborhoods
+  const cities = Array.from(new Set(jobs.map(j => j.city || 'São Paulo')));
+  const neighborhoods = Array.from(new Set(
+    jobs
+      .filter(j => selectedCity === 'all' || j.city === selectedCity)
+      .map(j => j.neighborhood || 'Centro')
+  ));
 
-  const filteredJobs = selectedNeighborhood === 'all'
-    ? jobs
-    : jobs.filter(j => j.neighborhood === selectedNeighborhood);
+  const filteredJobs = jobs.filter(j => {
+    const matchCity = selectedCity === 'all' || j.city === selectedCity;
+    const matchNeighborhood = selectedNeighborhood === 'all' || j.neighborhood === selectedNeighborhood;
+    return matchCity && matchNeighborhood;
+  });
 
   return (
     <div className="space-y-6">
       
       {/* Top Banner */}
       <div className="rounded-2xl bg-slate-900 border border-slate-800 p-5 sm:p-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
               <Compass className="w-4 h-4" />
               <span>Geolocalização & Rotas</span>
             </div>
             <h2 className="text-2xl font-black text-white">
-              Radar de Vagas por Bairro & Rotas no Maps
+              Radar de Vagas por Estado, Cidade & Bairro
             </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Calcule seu tempo de deslocamento, confira o endereço exato das casas de eventos e trace a rota no Google Maps ou Waze.
+              Consulte vagas filtrando por Cidade e Bairro, verifique o trajeto e trace sua rota direta no Google Maps ou Waze.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Filtrar Região:</span>
-            <select
-              value={selectedNeighborhood}
-              onChange={(e) => setSelectedNeighborhood(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
-            >
-              <option value="all">Todas as Regiões ({jobs.length} vagas)</option>
-              {neighborhoods.map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
+          <div className="flex flex-wrap items-center gap-3">
+            <div>
+              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Cidade:</label>
+              <select
+                value={selectedCity}
+                onChange={(e) => {
+                  setSelectedCity(e.target.value);
+                  setSelectedNeighborhood('all');
+                }}
+                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs font-bold focus:outline-none focus:border-emerald-500"
+              >
+                <option value="all">Todas as Cidades ({jobs.length})</option>
+                {cities.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Bairro:</label>
+              <select
+                value={selectedNeighborhood}
+                onChange={(e) => setSelectedNeighborhood(e.target.value)}
+                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs font-bold focus:outline-none focus:border-emerald-500"
+              >
+                <option value="all">Todos os Bairros</option>
+                {neighborhoods.map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -70,7 +97,7 @@ export const InteractiveMapRadar: React.FC<InteractiveMapRadarProps> = ({
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                    {job.neighborhood || 'São Paulo'}
+                    📍 {job.neighborhood || ''}, {job.city || ''} ({job.state || 'SP'})
                   </span>
 
                   {job.isUrgent && (

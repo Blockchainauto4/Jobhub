@@ -1,54 +1,119 @@
-import React, { useState } from 'react';
-import { X, Sparkles, Plus, AlertCircle, Wand2, MapPin, CheckCircle2, Copy } from 'lucide-react';
-import { FreelanceJob } from '../types';
+import React, { useState, useEffect } from 'react';
+import { X, Sparkles, Plus, Wand2, GraduationCap, Check } from 'lucide-react';
+import { FreelanceJob, BrazilState, UserProfile, JobSector } from '../types';
+import { getCertificationsForSector } from '../data/certificationsData';
+import { BRAZIL_STATES, POPULAR_NEIGHBORHOODS_BY_CITY } from '../data/brazilLocations';
 
 interface CreateJobModalProps {
   isOpen: boolean;
   onClose: () => void;
+  userProfile?: UserProfile | null;
   onJobCreated: (job: FreelanceJob) => void;
 }
+
+const COMMON_SKILLS_OPTIONS = [
+  'Bandeja Alta',
+  'Coquetelaria',
+  'Carga Pesada 50kg+',
+  'Limpeza Rápida',
+  'Pontualidade',
+  'Atendimento VIP',
+  'Operador de Caixa & POS',
+  'Abertura de Vinho',
+  'Montagem de Palco / Áudio',
+  'Inglês Básico'
+];
 
 export const CreateJobModal: React.FC<CreateJobModalProps> = ({
   isOpen,
   onClose,
+  userProfile,
   onJobCreated
 }) => {
   const [activeTab, setActiveTab] = useState<'ai' | 'manual'>('ai');
   const [rawWhatsAppText, setRawWhatsAppText] = useState(
 `🚨 VAGA PARA HOJE (URGENTE/AGORA) 🚨
 
-💼 Função: Limpeza (3 vagas)
+💼 Função: Bartender / Barman (2 vagas)
 📅 Data: Hoje (24/08/2026)
-⏰ Horário: Das 13h às 22h
-💰 Cachê: R$ 140,00 (Pagamento ao final via PIX)
-👕 Vestimenta: Roupa TODA PRETA (sem detalhes ou rasgos) + tênis/sapato escuro e confortável
-📍 Local: Rua Chile, 113 - Jardins, São Paulo - SP
-🗺️ Traçar rota no Maps: https://www.google.com/maps/dir/?api=1&destination=Rua+Chile,+113+-+Jardim+Paulista,+Sao+Paulo
+⏰ Horário: Das 18h às 02h
+💰 Cachê: R$ 220,00 (Pagamento ao final via PIX)
+👕 Vestimenta: Camisa Social Preta + Calça Preta + Sapato Social
+📍 Local: Espaço Vista Jardins, Alameda Santos, 1200 - Jardins, São Paulo - SP
+🗺️ Traçar rota no Maps: https://www.google.com/maps/dir/?api=1&destination=Alameda+Santos,+1200
 📞 Contato: (11) 98799-7872 (Chamar no privado)`
   );
   const [isParsing, setIsParsing] = useState(false);
 
   // Form states
   const [role, setRole] = useState('');
-  const [category, setCategory] = useState<FreelanceJob['category']>('Eventos & Festas');
+  const [category, setCategory] = useState<JobSector>('Eventos & Festas');
+  
+  // Locality: State, City, Neighborhood
+  const [state, setState] = useState<BrazilState>(userProfile?.state || 'SP');
+  const [city, setCity] = useState(userProfile?.city || 'São Paulo');
+  const [neighborhood, setNeighborhood] = useState(userProfile?.neighborhood || 'Jardins');
+  
   const [slotsTotal, setSlotsTotal] = useState<number>(1);
   const [date, setDate] = useState('Hoje (24/08/2026)');
-  const [startTime, setStartTime] = useState('13:00');
-  const [endTime, setEndTime] = useState('22:00');
-  const [cachet, setCachet] = useState<number>(140);
+  const [startTime, setStartTime] = useState('18:00');
+  const [endTime, setEndTime] = useState('02:00');
+  const [cachet, setCachet] = useState<number>(220);
   const [paymentDetails, setPaymentDetails] = useState('Pagamento ao final via PIX');
-  const [benefits, setBenefits] = useState('Alimentação no local');
-  const [dressCode, setDressCode] = useState('Roupa TODA PRETA + sapato escuro e confortável');
+  const [benefits, setBenefits] = useState('Alimentação no local + Uber volta');
+  const [dressCode, setDressCode] = useState('Roupa TODA PRETA social');
   const [locationName, setLocationName] = useState('');
   const [locationAddress, setLocationAddress] = useState('');
-  const [contactPhone, setContactPhone] = useState('(11) 98799-7872');
-  const [contactName, setContactName] = useState('Coordenação FreelaHub');
+  const [contactPhone, setContactPhone] = useState(userProfile?.phone || '(11) 98799-7872');
+  const [contactName, setContactName] = useState(userProfile?.companyName || userProfile?.name || 'Coordenação FreelaHub');
   const [isUrgent, setIsUrgent] = useState(true);
+  const [desiredSkills, setDesiredSkills] = useState<string[]>(['Pontualidade', 'Coquetelaria']);
+  const [requiredCertifications, setRequiredCertifications] = useState<string[]>([]);
+  const [customCertInput, setCustomCertInput] = useState('');
   const [requirementsStr, setRequirementsStr] = useState('Chegar 15 minutos antes, Pontualidade');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const suggestedCerts = getCertificationsForSector(category);
+  const selectedStateInfo = BRAZIL_STATES.find(s => s.uf === state);
+  const citySuggestions = selectedStateInfo?.popularCities || ['São Paulo'];
+  const neighborhoodSuggestions = POPULAR_NEIGHBORHOODS_BY_CITY[city] || ['Centro', 'Jardins', 'Vila Madalena', 'Santana'];
+
+  useEffect(() => {
+    if (userProfile) {
+      if (userProfile.phone) setContactPhone(userProfile.phone);
+      if (userProfile.companyName) setContactName(userProfile.companyName);
+      else if (userProfile.name) setContactName(userProfile.name);
+      if (userProfile.state) setState(userProfile.state);
+      if (userProfile.city) setCity(userProfile.city);
+      if (userProfile.neighborhood) setNeighborhood(userProfile.neighborhood);
+    }
+  }, [userProfile, isOpen]);
+
   if (!isOpen) return null;
+
+  const toggleDesiredSkill = (skill: string) => {
+    if (desiredSkills.includes(skill)) {
+      setDesiredSkills(desiredSkills.filter(s => s !== skill));
+    } else {
+      setDesiredSkills([...desiredSkills, skill]);
+    }
+  };
+
+  const toggleRequiredCert = (cert: string) => {
+    if (requiredCertifications.includes(cert)) {
+      setRequiredCertifications(requiredCertifications.filter(c => c !== cert));
+    } else {
+      setRequiredCertifications([...requiredCertifications, cert]);
+    }
+  };
+
+  const handleAddCustomCert = () => {
+    if (customCertInput.trim() && !requiredCertifications.includes(customCertInput.trim())) {
+      setRequiredCertifications([...requiredCertifications, customCertInput.trim()]);
+      setCustomCertInput('');
+    }
+  };
 
   const handleParseAi = async () => {
     if (!rawWhatsAppText.trim()) {
@@ -67,6 +132,9 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
 
       if (parsed.role) setRole(parsed.role);
       if (parsed.category) setCategory(parsed.category);
+      if (parsed.state) setState(parsed.state);
+      if (parsed.city) setCity(parsed.city);
+      if (parsed.neighborhood) setNeighborhood(parsed.neighborhood);
       if (parsed.slotsTotal) setSlotsTotal(parsed.slotsTotal);
       if (parsed.date) setDate(parsed.date);
       if (parsed.startTime) setStartTime(parsed.startTime);
@@ -80,8 +148,33 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
       if (parsed.contactPhone) setContactPhone(parsed.contactPhone);
       if (parsed.contactName) setContactName(parsed.contactName);
       if (parsed.isUrgent !== undefined) setIsUrgent(parsed.isUrgent);
+      if (parsed.desiredSkills && Array.isArray(parsed.desiredSkills)) {
+        setDesiredSkills(parsed.desiredSkills);
+      }
       if (parsed.requirements && Array.isArray(parsed.requirements)) {
         setRequirementsStr(parsed.requirements.join(', '));
+      }
+
+      // Detect certifications from text
+      const lower = rawWhatsAppText.toLowerCase();
+      const detectedCerts: string[] = [];
+      if (lower.includes('caixa') || lower.includes('fechamento') || lower.includes('tesouraria') || lower.includes('financeir')) {
+        detectedCerts.push('Operador de Caixa & Fechamento Financeiro');
+      }
+      if (lower.includes('anvisa') || lower.includes('manipula') || lower.includes('alimento') || lower.includes('cozinha') || lower.includes('higiene')) {
+        detectedCerts.push('Boas Práticas e Manipulação de Alimentos (RDC 216/ANVISA)');
+      }
+      if (lower.includes('nr11') || lower.includes('nr-11') || lower.includes('empilhadeira')) {
+        detectedCerts.push('NR-11 - Operador de Empilhadeira e Transpaleteira Elétrica');
+      }
+      if (lower.includes('nr10') || lower.includes('nr-10') || lower.includes('elétric') || lower.includes('eletric')) {
+        detectedCerts.push('NR-10 - Segurança em Instalações e Serviços em Eletricidade');
+      }
+      if (lower.includes('nr35') || lower.includes('nr-35') || lower.includes('altura') || lower.includes('truss')) {
+        detectedCerts.push('NR-35 - Trabalho em Altura (Box Truss e Estruturas)');
+      }
+      if (detectedCerts.length > 0) {
+        setRequiredCertifications(detectedCerts);
       }
 
       setActiveTab('manual');
@@ -94,8 +187,8 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!role || !cachet || !locationAddress || !contactPhone) {
-      alert('Preencha os campos obrigatórios: Função, Cachê, Endereço e Contato.');
+    if (!role || !cachet || !locationAddress || !contactPhone || !city || !neighborhood) {
+      alert('Preencha os campos obrigatórios: Função, Cachê, Cidade, Bairro, Endereço e Contato.');
       return;
     }
 
@@ -107,9 +200,12 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         .filter(Boolean);
 
       const payload = {
-        title: `${role} - ${locationName || locationAddress.split(',')[0]}`,
+        title: `${role} - ${neighborhood}, ${city}`,
         role,
         category,
+        state,
+        city,
+        neighborhood,
         slotsTotal: Number(slotsTotal) || 1,
         slotsAvailable: Number(slotsTotal) || 1,
         date,
@@ -121,12 +217,12 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         dressCode,
         locationName,
         locationAddress,
-        neighborhood: locationAddress.split('-')[1]?.trim() || 'São Paulo',
-        city: 'São Paulo - SP',
-        googleMapsUrl: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent((locationName ? `${locationName}, ` : '') + locationAddress)}`,
+        googleMapsUrl: `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent((locationName ? `${locationName}, ` : '') + locationAddress + `, ${neighborhood}, ${city} - ${state}`)}`,
         contactPhone,
         contactName,
         isUrgent,
+        desiredSkills,
+        requiredCertifications,
         status: 'open' as const,
         requirements
       };
@@ -153,7 +249,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-6 text-slate-100 my-8">
+      <div className="relative w-full max-w-2xl rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-6 text-slate-100 my-8 max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
@@ -173,7 +269,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
             Criar e Divulgar Nova Vaga
           </h2>
           <p className="text-xs text-slate-400">
-            Publique no mural e gere mensagens formatadas para grupos de WhatsApp e Telegram.
+            Publique no mural com informações de localidade padronizadas (Estado, Cidade e Bairro).
           </p>
         </div>
 
@@ -209,63 +305,100 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         {/* AI Tab */}
         {activeTab === 'ai' ? (
           <div className="space-y-4">
-            <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-xs text-emerald-300 space-y-1">
-              <span className="font-bold flex items-center gap-1.5 text-emerald-400">
-                <Sparkles className="w-4 h-4" /> Extração Inteligente de Mensagem:
-              </span>
-              <p>
-                Cole abaixo o texto de uma vaga de grupo do WhatsApp. O FreelaHub identificará função, horários, cachê PIX, vestimenta e rotas no Google Maps automaticamente!
-              </p>
-            </div>
-
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Texto bruto da vaga (WhatsApp):
+              <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                Cole o texto bruto da vaga (do WhatsApp ou Telegram):
               </label>
               <textarea
-                rows={9}
+                rows={8}
                 value={rawWhatsAppText}
                 onChange={(e) => setRawWhatsAppText(e.target.value)}
-                placeholder="Cole a mensagem aqui..."
-                className="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-emerald-500 leading-relaxed"
-              ></textarea>
+                placeholder="Cole aqui a mensagem do grupo..."
+                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-emerald-300 font-mono text-xs focus:outline-none focus:border-emerald-400"
+              />
             </div>
 
             <button
               type="button"
               disabled={isParsing}
               onClick={handleParseAi}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 font-black text-sm transition shadow-lg shadow-emerald-500/20 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm shadow-lg shadow-emerald-500/20 transition transform active:scale-95 disabled:opacity-50"
             >
-              {isParsing ? (
-                <span>Processando com IA...</span>
-              ) : (
-                <>
-                  <Wand2 className="w-4 h-4" />
-                  <span>Analisar e Preencher Formulário</span>
-                </>
-              )}
+              <Wand2 className="w-4 h-4" />
+              <span>{isParsing ? 'Estruturando Vaga com IA...' : 'Analisar e Preencher Automaticamente'}</span>
             </button>
           </div>
         ) : (
-          /* Manual Form */
-          <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+          <form onSubmit={handleSubmit} className="space-y-4">
             
-            {/* Urgent Switch */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🚨</span>
+            {/* Locality: Estado, Cidade e Bairro */}
+            <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2.5">
+              <div className="text-xs font-bold text-cyan-400">
+                📍 Localidade da Vaga (Estado, Cidade e Bairro)
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <div className="text-xs font-bold text-white">Vaga Urgente / Para Hoje?</div>
-                  <div className="text-[11px] text-slate-400">Destaca com badge vermelho pulsante no topo</div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Estado (UF) *
+                  </label>
+                  <select
+                    value={state}
+                    onChange={(e) => {
+                      const newUf = e.target.value as BrazilState;
+                      setState(newUf);
+                      const stInfo = BRAZIL_STATES.find(s => s.uf === newUf);
+                      if (stInfo && stInfo.popularCities[0]) {
+                        setCity(stInfo.popularCities[0]);
+                      }
+                    }}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500 font-bold"
+                  >
+                    {BRAZIL_STATES.map(st => (
+                      <option key={st.uf} value={st.uf}>{st.name} ({st.uf})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Cidade *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: São Paulo"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    list="job-cities-list"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                  <datalist id="job-cities-list">
+                    {citySuggestions.map(c => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Bairro *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Jardins, Moema, Centro"
+                    value={neighborhood}
+                    onChange={(e) => setNeighborhood(e.target.value)}
+                    list="job-neighborhoods-list"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                  <datalist id="job-neighborhoods-list">
+                    {neighborhoodSuggestions.map(n => (
+                      <option key={n} value={n} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
-              <input
-                type="checkbox"
-                checked={isUrgent}
-                onChange={(e) => setIsUrgent(e.target.checked)}
-                className="w-5 h-5 rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-900 cursor-pointer"
-              />
             </div>
 
             {/* Role & Category */}
@@ -280,26 +413,118 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="Ex: Limpeza, Carregador, Bartender"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Categoria *
+                  Setor / Categoria *
                 </label>
                 <select
                   value={category}
                   onChange={(e: any) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 >
-                  <option value="Eventos & Festas">Eventos & Festas</option>
-                  <option value="Bares & Restaurantes">Bares & Restaurantes</option>
-                  <option value="Logística & Cargas">Logística & Cargas</option>
-                  <option value="Limpeza & Serviços">Limpeza & Serviços</option>
-                  <option value="Hotelaria & Recepção">Hotelaria & Recepção</option>
-                  <option value="Outros">Outros</option>
+                  <option value="Finanças & Caixa de Eventos">💰 Finanças & Caixa de Eventos (Certificações Requeridas)</option>
+                  <option value="Eventos & Festas">🎉 Eventos & Festas</option>
+                  <option value="Bares & Restaurantes">🍹 Bares & Restaurantes</option>
+                  <option value="Logística & Cargas">📦 Logística & Cargas (NR-11)</option>
+                  <option value="Limpeza & Serviços">🧹 Limpeza & Facilities (NR-06)</option>
+                  <option value="Hotelaria & Recepção">🏨 Hotelaria & Recepção</option>
+                  <option value="Segurança & Apoio">🛡️ Segurança & Apoio (NR-23 / APH)</option>
+                  <option value="Audiovisual & Montagem">⚡ Audiovisual & Montagem (NR-10 / NR-35)</option>
+                  <option value="Outros">🏷️ Outros</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Cursos & Certificações Requeridas ou Recomendadas */}
+            <div className="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-bold text-amber-300">
+                    Exigir Cursos Técnicos ou Certificações Específicas
+                  </span>
+                </div>
+                {requiredCertifications.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/40">
+                    {requiredCertifications.length} selecionada{requiredCertifications.length > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Candidatos com estes certificados ganham destaque no ranking de triagem da vaga:
+              </p>
+
+              {/* Suggestions for current category */}
+              <div className="flex flex-wrap gap-1.5">
+                {suggestedCerts.map(cert => {
+                  const isSel = requiredCertifications.includes(cert.name);
+                  return (
+                    <button
+                      type="button"
+                      key={cert.id}
+                      onClick={() => toggleRequiredCert(cert.name)}
+                      className={`text-[11px] px-2.5 py-1 rounded-lg transition border text-left flex items-center gap-1.5 ${
+                        isSel
+                          ? 'bg-amber-500/30 text-amber-200 border-amber-500 font-bold shadow-sm'
+                          : 'bg-slate-900/90 text-slate-300 border-slate-700/80 hover:border-amber-500/40 hover:text-white'
+                      }`}
+                    >
+                      <span>{isSel ? '🏅' : '📜'}</span>
+                      <span>{cert.name}</span>
+                      {isSel && <span className="text-amber-400 font-bold ml-0.5">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom cert input */}
+              <div className="flex gap-2 pt-1">
+                <input
+                  type="text"
+                  placeholder="Exigir outro curso/órgão emissor..."
+                  value={customCertInput}
+                  onChange={(e) => setCustomCertInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomCert(); } }}
+                  className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-400"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCustomCert}
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-black text-slate-950 transition"
+                >
+                  Adicionar
+                </button>
+              </div>
+            </div>
+
+            {/* Desired Skills */}
+            <div>
+              <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                Habilidades Técnicas Desejadas:
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {COMMON_SKILLS_OPTIONS.map(skill => {
+                  const isSel = desiredSkills.includes(skill);
+                  return (
+                    <button
+                      type="button"
+                      key={skill}
+                      onClick={() => toggleDesiredSkill(skill)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
+                        isSel
+                          ? 'bg-emerald-500 text-slate-950 shadow-sm'
+                          : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      {isSel && <Check className="w-3 h-3" />}
+                      <span>{skill}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -316,7 +541,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   required
                   value={slotsTotal}
                   onChange={(e) => setSlotsTotal(parseInt(e.target.value, 10) || 1)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -329,7 +554,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="13:00"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -342,7 +567,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="22:00"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
@@ -360,7 +585,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="140.00"
                   value={cachet}
                   onChange={(e) => setCachet(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500 font-bold"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500 font-bold text-emerald-400"
                 />
               </div>
 
@@ -373,12 +598,12 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="Pagamento ao final via PIX / Acabou levou"
                   value={paymentDetails}
                   onChange={(e) => setPaymentDetails(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
 
-            {/* Location */}
+            {/* Location Details */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">
@@ -389,21 +614,21 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="Ex: Usina Espaço A / Buffet Jardins"
                   value={locationName}
                   onChange={(e) => setLocationName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Endereço Completo *
+                  Logradouro / Número *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ex: Av. Alcides Sangirardi, S/N - Cidade Jardim, SP"
+                  placeholder="Ex: Alameda Santos, 1200"
                   value={locationAddress}
                   onChange={(e) => setLocationAddress(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
@@ -419,7 +644,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="Ex: Roupa TODA PRETA + tênis/sapato escuro"
                   value={dressCode}
                   onChange={(e) => setDressCode(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -432,7 +657,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="Ex: Alimentação no local, VT Incluso"
                   value={benefits}
                   onChange={(e) => setBenefits(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
@@ -449,7 +674,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="(11) 98799-7872"
                   value={contactPhone}
                   onChange={(e) => setContactPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -462,21 +687,21 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   placeholder="Ex: Coordenação FreelaHub / Marcelo"
                   value={contactName}
                   onChange={(e) => setContactName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1">
-                Requisitos (separados por vírgula)
+                Requisitos adicionais (separados por vírgula)
               </label>
               <input
                 type="text"
                 placeholder="Ex: Maior de 18 anos, Pontualidade, Experiência prévia"
                 value={requirementsStr}
                 onChange={(e) => setRequirementsStr(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
               />
             </div>
 
