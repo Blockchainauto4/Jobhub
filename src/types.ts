@@ -118,6 +118,12 @@ export interface UserProfile {
   bio?: string;
   completedJobsCount?: number;
   totalEarnings?: number;
+  credits?: number; // 50 Créditos de Vagas
+  missionsCompleted?: {
+    tiktokReferral: boolean;
+    kwaiReferral: boolean;
+    whatsappGroupJoined: boolean;
+  };
   createdAt: string;
   updatedAt: string;
 }

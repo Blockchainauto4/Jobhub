@@ -19,6 +19,7 @@ interface HeroBannerProps {
   onOpenSkillsDirectory: () => void;
   onOpenCertificationsGuide?: () => void;
   onOpenCreateJob: () => void;
+  onOpenMissionsModal?: () => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({
@@ -37,7 +38,8 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   setOnlyUrgent,
   onOpenSkillsDirectory,
   onOpenCertificationsGuide,
-  onOpenCreateJob
+  onOpenCreateJob,
+  onOpenMissionsModal
 }) => {
   const availableCities = useMemo(() => {
     if (selectedState === 'Todos') {
@@ -92,13 +94,23 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
 
         {/* Action Buttons Bar */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-6 w-full">
+          {onOpenMissionsModal && (
+            <button
+              onClick={onOpenMissionsModal}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-amber-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-amber-500/50 text-amber-300 text-xs font-black transition shadow-lg shadow-amber-500/10 animate-pulse"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>🎁 Missões TikTok & Kwai: R$ 50,00 + Grupo VIP WhatsApp</span>
+            </button>
+          )}
+
           {onOpenCertificationsGuide && (
             <button
               onClick={onOpenCertificationsGuide}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-950/70 hover:bg-amber-900/80 border border-amber-500/40 text-amber-300 text-xs font-bold transition shadow-sm"
             >
               <GraduationCap className="w-4 h-4 text-amber-400" />
-              <span>Cursos & Certificações (Finanças / ANVISA / NRs)</span>
+              <span>Cursos & Certificações</span>
             </button>
           )}
 
@@ -107,7 +119,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold transition shadow-sm"
           >
             <Tag className="w-4 h-4 text-emerald-400" />
-            <span>Catálogo de Habilidades</span>
+            <span>Habilidades</span>
           </button>
 
           <button
@@ -115,7 +127,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 text-xs font-extrabold transition shadow-lg shadow-emerald-500/20"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Publicar Vaga Freelancer</span>
+            <span>Publicar Vaga</span>
           </button>
         </div>
 

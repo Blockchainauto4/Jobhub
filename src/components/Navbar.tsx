@@ -11,7 +11,10 @@ import {
   Share2,
   User,
   Building2,
-  CheckCircle2
+  CheckCircle2,
+  Gift,
+  Coins,
+  MessageCircle
 } from 'lucide-react';
 import { FreelanceJob, UserProfile } from '../types';
 import { formatCurrency } from '../utils/formatters';
@@ -24,6 +27,7 @@ interface NavbarProps {
   onOpenUserProfile: () => void;
   onOpenCreateJob: () => void;
   onOpenDbSettings: () => void;
+  onOpenMissionsModal: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -33,7 +37,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   userProfile,
   onOpenUserProfile,
   onOpenCreateJob,
-  onOpenDbSettings
+  onOpenDbSettings,
+  onOpenMissionsModal
 }) => {
   const openJobsCount = jobs.filter(j => j.status === 'open').length;
   const urgentJobsCount = jobs.filter(j => j.status === 'open' && j.isUrgent).length;
@@ -45,6 +50,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const displayName = userProfile?.companyName || userProfile?.name || 'Ficha Profissional';
   const isProfileConfigured = Boolean(userProfile?.name && userProfile?.phone);
+
+  const credits = userProfile?.credits ?? 50;
+  const isMissionsDone = Boolean(userProfile?.missionsCompleted?.tiktokReferral && userProfile?.missionsCompleted?.kwaiReferral);
 
   return (
     <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-emerald-900/40 shadow-lg shadow-black/20">
@@ -101,6 +109,29 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Missions & R$ 50 Rewards Pill */}
+            <button
+              id="btn-missions-rewards"
+              onClick={onOpenMissionsModal}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black border transition ${
+                isMissionsDone 
+                  ? 'bg-amber-950/50 hover:bg-amber-900/60 text-amber-300 border-amber-500/40'
+                  : 'bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-amber-500/20 hover:border-amber-400 text-amber-300 border-amber-500/50 animate-pulse shadow-md shadow-amber-500/10'
+              }`}
+              title="Missões TikTok & Kwai: Ganhe R$ 50,00 em Reais e Acesso ao Grupo VIP WhatsApp"
+            >
+              <Gift className="w-4 h-4 text-amber-400" />
+              <span className="hidden sm:inline">
+                {formatCurrency(credits)}
+              </span>
+              <span className="sm:hidden">
+                R$ {credits}
+              </span>
+              {isMissionsDone && (
+                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+              )}
+            </button>
+
             {/* User Profile / Ficha Profissional Button */}
             <button
               id="btn-user-profile"

@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
-import { X, CheckCircle2, Phone, ArrowRight, Tag, Plus, Check, GraduationCap } from 'lucide-react';
+import { X, CheckCircle2, Phone, ArrowRight, Tag, Plus, Check, GraduationCap, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { FreelanceJob, BrazilState, UserProfile } from '../types';
-import { formatCurrency, createWhatsAppLink } from '../utils/formatters';
+import { 
+  formatCurrency, 
+  createWhatsAppLink, 
+  formatPhone, 
+  isValidPhone, 
+  formatPixKey, 
+  validatePixKey, 
+  validateName 
+} from '../utils/formatters';
 import { BRAZIL_STATES, POPULAR_NEIGHBORHOODS_BY_CITY } from '../data/brazilLocations';
 
 interface ApplyModalProps {
@@ -45,9 +53,9 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   onSubmitApplication
 }) => {
   const [name, setName] = useState(userProfile?.name || '');
-  const [whatsapp, setWhatsapp] = useState(userProfile?.phone || '');
+  const [whatsapp, setWhatsapp] = useState(formatPhone(userProfile?.phone || ''));
   const [pixType, setPixType] = useState<'cpf' | 'email' | 'phone' | 'random'>(userProfile?.pixType || 'phone');
-  const [pixKey, setPixKey] = useState(userProfile?.pixKey || userProfile?.phone || '');
+  const [pixKey, setPixKey] = useState(userProfile?.pixKey ? formatPixKey(userProfile.pixKey, userProfile.pixType || 'phone') : (userProfile?.phone ? formatPhone(userProfile.phone) : ''));
   
   // Locality: State, City, Neighborhood
   const [state, setState] = useState<BrazilState>(userProfile?.state || job?.state || 'SP');
@@ -68,6 +76,7 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   const [agreedDressCode, setAgreedDressCode] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successSubmitted, setSuccessSubmitted] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const selectedStateInfo = BRAZIL_STATES.find(s => s.uf === state);
   const citySuggestions = selectedStateInfo?.popularCities || ['São Paulo'];
@@ -77,9 +86,10 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   React.useEffect(() => {
     if (userProfile) {
       if (userProfile.name) setName(userProfile.name);
-      if (userProfile.phone) setWhatsapp(userProfile.phone);
-      if (userProfile.pixKey) setPixKey(userProfile.pixKey);
+      if (userProfile.phone) setWhatsapp(formatPhone(userProfile.phone));
       if (userProfile.pixType) setPixType(userProfile.pixType);
+      if (userProfile.pixKey) setPixKey(formatPixKey(userProfile.pixKey, userProfile.pixType || 'phone'));
+      else if (userProfile.phone) setPixKey(formatPhone(userProfile.phone));
       if (userProfile.state) setState(userProfile.state);
       if (userProfile.city) setCity(userProfile.city);
       if (userProfile.neighborhood) setNeighborhood(userProfile.neighborhood);
@@ -90,6 +100,11 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   }, [userProfile, job]);
 
   if (!job) return null;
+
+  const isNameValid = validateName(name).isValid;
+  const isWhatsappValid = isValidPhone(whatsapp);
+  const isPixValid = validatePixKey(pixKey, pixType).isValid;
+  const pixValidationMsg = validatePixKey(pixKey, pixType).message;
 
   const toggleSkill = (skill: string) => {
     if (selectedSkills.includes(skill)) {
@@ -121,33 +136,60 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
     }
   };
 
+  const handleWhatsappChange = (val: string) => {
+    const formatted = formatPhone(val);
+    setWhatsapp(formatted);
+    setFormError(null);
+    if (pixType === 'phone' && (!pixKey || pixKey === whatsapp)) {
+      setPixKey(formatted);
+    }
+  };
+
+  const handlePixKeyChange = (val: string) => {
+    const formatted = formatPixKey(val, pixType);
+    setPixKey(formatted);
+    setFormError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !whatsapp || !pixKey) {
-      alert('Por favor, preencha seu Nome, WhatsApp e Chave PIX.');
+    setFormError(null);
+
+    if (!isNameValid) {
+      setFormError('Por favor, informe seu Nome Completo (mínimo 3 caracteres).');
       return;
     }
 
-    if (!city || !neighborhood) {
-      alert('Por favor, informe sua Cidade e Bairro.');
+    if (!isWhatsappValid) {
+      setFormError('WhatsApp inválido. Digite DDD + 9 dígitos (ex: (11) 98765-4321).');
+      return;
+    }
+
+    if (!isPixValid) {
+      setFormError(`Chave PIX inválida: ${pixValidationMsg}`);
+      return;
+    }
+
+    if (!city.trim() || !neighborhood.trim()) {
+      setFormError('Por favor, informe sua Cidade e Bairro.');
       return;
     }
 
     if (!agreedDressCode) {
-      alert('Você precisa confirmar a conformidade com a vestimenta exigida.');
+      setFormError('Você precisa confirmar a conformidade com a vestimenta exigida.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await onSubmitApplication(job.id, {
-        name,
-        whatsapp,
-        pixKey,
+        name: name.trim(),
+        whatsapp: whatsapp.trim(),
+        pixKey: pixKey.trim(),
         pixType,
         state,
-        city,
-        neighborhood,
+        city: city.trim(),
+        neighborhood: neighborhood.trim(),
         skills: selectedSkills,
         certifications: selectedCertifications,
         experienceSummary: experienceSummary || 'Tenho total disponibilidade para o horário e função solicitada.'
@@ -161,7 +203,7 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
 
       setSuccessSubmitted(true);
     } catch (err: any) {
-      alert(`Erro ao enviar candidatura: ${err.message}`);
+      setFormError(`Erro ao enviar candidatura: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -171,19 +213,19 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   const whatsappUrl = createWhatsAppLink(job.contactPhone, whatsappMessage);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-lg rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-6 text-slate-100 my-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-3 sm:p-5 flex justify-center items-start sm:items-center">
+      <div className="relative w-full max-w-lg max-h-[90vh] my-auto flex flex-col rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl text-slate-100 overflow-hidden">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="absolute top-4 right-4 z-10 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
         >
           <X className="w-5 h-5" />
         </button>
 
         {successSubmitted ? (
-          <div className="text-center py-6 space-y-4">
+          <div className="text-center p-6 sm:p-7 space-y-4 overflow-y-auto custom-scrollbar">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
@@ -235,10 +277,11 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+          <form onSubmit={handleSubmit} className="flex flex-col h-full max-h-[90vh] overflow-hidden">
+            {/* Pinned Modal Header */}
+            <div className="p-5 pb-3.5 shrink-0 border-b border-slate-800 bg-slate-900/95 pr-12">
               <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Candidatar-se à Vaga</span>
-              <h2 className="text-xl font-black text-white mt-0.5">{job.role}</h2>
+              <h2 className="text-lg sm:text-xl font-black text-white mt-0.5">{job.role}</h2>
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-1">
                 <span>📍 {job.neighborhood || ''}, {job.city || ''} ({job.state || 'SP'})</span>
                 <span>•</span>
@@ -246,33 +289,74 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
               </div>
             </div>
 
+            {/* Scrollable Form Body */}
+            <div className="p-5 overflow-y-auto custom-scrollbar space-y-4 flex-1">
+
+            {/* Error message */}
+            {formError && (
+              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/50 text-rose-300 text-xs flex items-start gap-2 animate-shake">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <span className="font-medium">{formError}</span>
+              </div>
+            )}
+
             {/* Candidate Name & Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Seu Nome Completo *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    Seu Nome Completo *
+                  </label>
+                  {name.trim() && (
+                    <span className={`text-[10px] flex items-center gap-0.5 font-bold ${
+                      isNameValid ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {isNameValid ? <><Check className="w-3 h-3" /> Válido</> : 'Mín. 3 letras'}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
                   required
                   placeholder="Carlos Silva"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setFormError(null);
+                  }}
+                  className={`w-full px-3 py-2 rounded-xl bg-slate-950 border text-white text-xs focus:outline-none transition ${
+                    name.trim()
+                      ? isNameValid ? 'border-emerald-500/60 focus:border-emerald-400' : 'border-amber-500/60 focus:border-amber-400'
+                      : 'border-slate-700 focus:border-emerald-500'
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Seu WhatsApp com DDD *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    Seu WhatsApp com DDD *
+                  </label>
+                  {whatsapp.trim() && (
+                    <span className={`text-[10px] flex items-center gap-0.5 font-bold ${
+                      isWhatsappValid ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {isWhatsappValid ? <><Check className="w-3 h-3" /> DDD Válido</> : 'DDD + 9 dígitos'}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="tel"
                   required
+                  maxLength={15}
                   placeholder="(11) 98765-4321"
                   value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  onChange={(e) => handleWhatsappChange(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-xl bg-slate-950 border font-mono text-xs focus:outline-none transition ${
+                    whatsapp.trim()
+                      ? isWhatsappValid ? 'border-emerald-500/60 text-emerald-300 focus:border-emerald-400' : 'border-amber-500/60 text-amber-200 focus:border-amber-400'
+                      : 'border-slate-700 text-white focus:border-emerald-500'
+                  }`}
                 />
               </div>
             </div>
@@ -314,7 +398,10 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
                     required
                     placeholder="Ex: São Paulo"
                     value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    onChange={(e) => {
+                      setCity(e.target.value);
+                      setFormError(null);
+                    }}
                     list="candidate-cities-list"
                     className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                   />
@@ -334,7 +421,10 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
                     required
                     placeholder="Ex: Pinheiros, Centro"
                     value={neighborhood}
-                    onChange={(e) => setNeighborhood(e.target.value)}
+                    onChange={(e) => {
+                      setNeighborhood(e.target.value);
+                      setFormError(null);
+                    }}
                     list="candidate-neighborhoods-list"
                     className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                   />
@@ -355,7 +445,13 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
                 </label>
                 <select
                   value={pixType}
-                  onChange={(e) => setPixType(e.target.value as any)}
+                  onChange={(e) => {
+                    const nextType = e.target.value as any;
+                    setPixType(nextType);
+                    if (nextType === 'phone') setPixKey(whatsapp);
+                    else setPixKey('');
+                    setFormError(null);
+                  }}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
                 >
                   <option value="phone">Telefone</option>
@@ -366,16 +462,34 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Chave PIX para Recebimento *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    Chave PIX para Recebimento *
+                  </label>
+                  {pixKey && (
+                    <span className={`text-[10px] flex items-center gap-0.5 font-bold ${
+                      isPixValid ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {isPixValid ? <><Check className="w-3 h-3" /> Chave Válida</> : pixValidationMsg}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
                   required
-                  placeholder="Sua chave PIX para receber o cachê"
+                  placeholder={
+                    pixType === 'phone' ? '(11) 98765-4321' :
+                    pixType === 'cpf' ? '000.000.000-00' :
+                    pixType === 'email' ? 'exemplo@email.com' :
+                    'Chave aleatória'
+                  }
                   value={pixKey}
-                  onChange={(e) => setPixKey(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-emerald-400 font-mono text-xs focus:outline-none focus:border-emerald-500"
+                  onChange={(e) => handlePixKeyChange(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-xl bg-slate-950 border font-mono text-xs focus:outline-none transition ${
+                    pixKey
+                      ? isPixValid ? 'border-emerald-500/60 text-emerald-300 focus:border-emerald-400' : 'border-amber-500/60 text-amber-200 focus:border-amber-400'
+                      : 'border-slate-700 text-emerald-400 focus:border-emerald-500'
+                  }`}
                 />
               </div>
             </div>
@@ -465,8 +579,10 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
               </label>
             </div>
 
-            {/* Submit */}
-            <div className="pt-2">
+            </div>
+
+            {/* Submit (Pinned Footer) */}
+            <div className="p-4 shrink-0 border-t border-slate-800 bg-slate-950/90">
               <button
                 type="submit"
                 disabled={isSubmitting}

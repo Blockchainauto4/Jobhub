@@ -66,11 +66,11 @@ export const CertificationsDirectoryModal: React.FC<CertificationsDirectoryModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative w-full max-w-4xl bg-slate-900 border border-emerald-500/40 rounded-2xl shadow-2xl overflow-hidden my-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex justify-center items-start sm:items-center p-3 sm:p-5">
+      <div className="relative w-full max-w-4xl max-h-[90vh] my-auto flex flex-col bg-slate-900 border border-emerald-500/40 rounded-2xl shadow-2xl overflow-hidden">
         
-        {/* Modal Header */}
-        <div className="p-6 bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 border-b border-emerald-900/50">
+        {/* Modal Header (Pinned) */}
+        <div className="p-5 sm:p-6 shrink-0 bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 border-b border-emerald-900/50">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
@@ -152,7 +152,7 @@ export const CertificationsDirectoryModal: React.FC<CertificationsDirectoryModal
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
+        <div className="p-5 sm:p-6 flex-1 overflow-y-auto custom-scrollbar space-y-4">
           {/* Important Sector Highlights Banner */}
           <div className="p-4 bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950/40 rounded-xl border border-emerald-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">

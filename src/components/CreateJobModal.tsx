@@ -3,6 +3,7 @@ import { X, Sparkles, Plus, Wand2, GraduationCap, Check } from 'lucide-react';
 import { FreelanceJob, BrazilState, UserProfile, JobSector } from '../types';
 import { getCertificationsForSector } from '../data/certificationsData';
 import { BRAZIL_STATES, POPULAR_NEIGHBORHOODS_BY_CITY } from '../data/brazilLocations';
+import { formatPhone, isValidPhone } from '../utils/formatters';
 
 interface CreateJobModalProps {
   isOpen: boolean;
@@ -248,8 +249,8 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-6 text-slate-100 my-8 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-3 sm:p-5 flex justify-center items-start sm:items-center">
+      <div className="relative w-full max-w-2xl rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-5 sm:p-6 text-slate-100 my-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
         
         {/* Close Button */}
         <button
@@ -665,16 +666,26 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
             {/* Contact */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Telefone / WhatsApp de Contato *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    Telefone / WhatsApp de Contato *
+                  </label>
+                  {contactPhone.trim() && (
+                    <span className={`text-[10px] font-bold ${
+                      isValidPhone(contactPhone) ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {isValidPhone(contactPhone) ? '✓ DDD Válido' : 'DDD + 9 dígitos'}
+                    </span>
+                  )}
+                </div>
                 <input
                   type="text"
                   required
+                  maxLength={15}
                   placeholder="(11) 98799-7872"
                   value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  onChange={(e) => setContactPhone(formatPhone(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
                 />
               </div>
 

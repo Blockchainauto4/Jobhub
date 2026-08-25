@@ -15,8 +15,9 @@ import { FreelancerCalculator } from './components/FreelancerCalculator';
 import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
 import { DatabaseSettingsModal } from './components/DatabaseSettingsModal';
 import { UserProfileModal } from './components/UserProfileModal';
+import { MissionsRewardsModal } from './components/MissionsRewardsModal';
 import { FreelanceJob, JobApplicant, BrazilState, UserProfile } from './types';
-import { Briefcase, RefreshCw, Filter, UserCheck, GraduationCap, Tag } from 'lucide-react';
+import { Briefcase, RefreshCw, Filter, UserCheck, GraduationCap, Tag, Gift, Sparkles } from 'lucide-react';
 
 const CATEGORIES = [
   'Todas',
@@ -41,6 +42,7 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isUserProfileOpen, setIsUserProfileOpen] = useState(false);
   const [isFirstAccessOnboarding, setIsFirstAccessOnboarding] = useState(false);
+  const [isMissionsModalOpen, setIsMissionsModalOpen] = useState(false);
 
   // Search & Filter States
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,12 +80,54 @@ export default function App() {
 
   const handleSaveUserProfile = (profile: UserProfile) => {
     try {
+      const isFirst = isFirstAccessOnboarding;
       localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(profile));
       setUserProfile(profile);
       setIsFirstAccessOnboarding(false);
+
+      // On first onboarding complete, seamlessly open the TikTok & Kwai referral missions & 50 credits
+      if (isFirst) {
+        setTimeout(() => {
+          setIsMissionsModalOpen(true);
+        }, 1100);
+      }
     } catch (err) {
       console.error('Erro ao salvar perfil:', err);
     }
+  };
+
+  const handleUpdateMissions = (updatedMissions: UserProfile['missionsCompleted'], newCredits: number) => {
+    if (!userProfile) {
+      const tempProfile: UserProfile = {
+        id: `user-${Date.now()}`,
+        userType: 'freelancer',
+        name: 'Usuário FreelaHub',
+        phone: '',
+        pixType: 'phone',
+        pixKey: '',
+        state: 'SP',
+        city: 'São Paulo',
+        neighborhood: 'Centro',
+        skills: ['Atendimento VIP & Recepcionista'],
+        certifications: [],
+        completedJobsCount: 0,
+        totalEarnings: 0,
+        credits: newCredits,
+        missionsCompleted: updatedMissions,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      handleSaveUserProfile(tempProfile);
+      return;
+    }
+
+    const updated: UserProfile = {
+      ...userProfile,
+      credits: newCredits,
+      missionsCompleted: updatedMissions,
+      updatedAt: new Date().toISOString()
+    };
+    handleSaveUserProfile(updated);
   };
 
   // Fetch initial jobs
@@ -207,6 +251,7 @@ export default function App() {
         onOpenUserProfile={() => setIsUserProfileOpen(true)}
         onOpenCreateJob={() => setIsCreateModalOpen(true)}
         onOpenDbSettings={() => setIsDbSettingsOpen(true)}
+        onOpenMissionsModal={() => setIsMissionsModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -237,6 +282,7 @@ export default function App() {
               onOpenSkillsDirectory={() => setIsSkillsDirectoryOpen(true)}
               onOpenCertificationsGuide={() => setIsCertificationsDirectoryOpen(true)}
               onOpenCreateJob={() => setIsCreateModalOpen(true)}
+              onOpenMissionsModal={() => setIsMissionsModalOpen(true)}
             />
 
             {/* Results count & quick actions */}
@@ -252,6 +298,14 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsMissionsModalOpen(true)}
+                  className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition flex items-center gap-1.5"
+                >
+                  <Gift className="w-3.5 h-3.5 text-amber-400" />
+                  <span>R$ 50,00 & Missões</span>
+                </button>
+
                 <button
                   onClick={() => setIsUserProfileOpen(true)}
                   className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-300 text-xs font-bold transition flex items-center gap-1.5"
@@ -375,6 +429,10 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">
+            <button onClick={() => setIsMissionsModalOpen(true)} className="hover:text-amber-400 transition text-amber-300 font-bold">
+              🎁 Missões & R$ 50
+            </button>
+            <span>•</span>
             <button onClick={() => setIsUserProfileOpen(true)} className="hover:text-emerald-400 transition">
               Minha Ficha / Perfil
             </button>
@@ -409,6 +467,13 @@ export default function App() {
         userProfile={userProfile}
         onSaveProfile={handleSaveUserProfile}
         isFirstAccess={isFirstAccessOnboarding}
+      />
+
+      <MissionsRewardsModal
+        isOpen={isMissionsModalOpen}
+        onClose={() => setIsMissionsModalOpen(false)}
+        userProfile={userProfile}
+        onUpdateMissions={handleUpdateMissions}
       />
 
       <ApplyModal
