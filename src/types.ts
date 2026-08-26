@@ -98,6 +98,10 @@ export interface FreelanceJob {
   applicantsCount: number;
   createdAt: string;
   applicants?: JobApplicant[];
+  sponsorMissionUrl?: string;
+  requiresMissionToUnlockContact?: boolean;
+  genderRequirement?: 'todos' | 'homens' | 'mulheres';
+  datesList?: string[];
 }
 
 export interface UserProfile {
@@ -119,6 +123,7 @@ export interface UserProfile {
   completedJobsCount?: number;
   totalEarnings?: number;
   credits?: number; // 50 Créditos de Vagas
+  unlockedJobContacts?: string[]; // Job IDs where contact was unlocked
   missionsCompleted?: {
     tiktokReferral: boolean;
     kwaiReferral: boolean;

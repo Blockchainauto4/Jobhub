@@ -39,7 +39,7 @@ export const MissionsRewardsModal: React.FC<MissionsRewardsModalProps> = ({
   onUpdateMissions
 }) => {
   // Referral links state with defaults (customizable)
-  const [tiktokLink, setTiktokLink] = useState('https://www.tiktok.com/t/ZS2FreelaHub/');
+  const [tiktokLink, setTiktokLink] = useState('https://www.tiktok.com/d/1/ZS9BMchsVwW1a-x3E0j/');
   const [tiktokCode, setTiktokCode] = useState('TIKTOK-FREELA50');
   const [kwaiLink, setKwaiLink] = useState('https://s.kwai.app/s/kwaiFreelaHub50');
   const [kwaiCode, setKwaiCode] = useState('KWAI-FREELA50');

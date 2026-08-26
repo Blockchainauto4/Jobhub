@@ -16,8 +16,9 @@ import { WhatsAppPreviewModal } from './components/WhatsAppPreviewModal';
 import { DatabaseSettingsModal } from './components/DatabaseSettingsModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { MissionsRewardsModal } from './components/MissionsRewardsModal';
+import { SponsorContactUnlockModal } from './components/SponsorContactUnlockModal';
 import { FreelanceJob, JobApplicant, BrazilState, UserProfile } from './types';
-import { Briefcase, RefreshCw, Filter, UserCheck, GraduationCap, Tag, Gift, Sparkles } from 'lucide-react';
+import { Briefcase, RefreshCw, Filter, UserCheck, GraduationCap, Tag, Gift, Sparkles, Lock } from 'lucide-react';
 
 const CATEGORIES = [
   'Todas',
@@ -55,6 +56,7 @@ export default function App() {
   // Modals state
   const [applyModalJob, setApplyModalJob] = useState<FreelanceJob | null>(null);
   const [whatsAppModalJob, setWhatsAppModalJob] = useState<FreelanceJob | null>(null);
+  const [unlockModalJob, setUnlockModalJob] = useState<FreelanceJob | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDbSettingsOpen, setIsDbSettingsOpen] = useState(false);
   const [isSkillsDirectoryOpen, setIsSkillsDirectoryOpen] = useState(false);
@@ -125,6 +127,50 @@ export default function App() {
       ...userProfile,
       credits: newCredits,
       missionsCompleted: updatedMissions,
+      updatedAt: new Date().toISOString()
+    };
+    handleSaveUserProfile(updated);
+  };
+
+  const handleContactUnlocked = (jobId: string) => {
+    if (!userProfile) {
+      const tempProfile: UserProfile = {
+        id: `user-${Date.now()}`,
+        userType: 'freelancer',
+        name: 'Usuário FreelaHub',
+        phone: '',
+        pixType: 'phone',
+        pixKey: '',
+        state: 'SP',
+        city: 'São Paulo',
+        neighborhood: 'Centro',
+        skills: ['Logística de Eventos', 'Pontualidade'],
+        certifications: [],
+        completedJobsCount: 0,
+        totalEarnings: 0,
+        credits: 50,
+        unlockedJobContacts: [jobId],
+        missionsCompleted: {
+          tiktokReferral: true,
+          kwaiReferral: false,
+          whatsappGroupJoined: false
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      handleSaveUserProfile(tempProfile);
+      return;
+    }
+
+    const existingUnlocked = userProfile.unlockedJobContacts || [];
+    const updatedList = existingUnlocked.includes(jobId) ? existingUnlocked : [...existingUnlocked, jobId];
+    const updated: UserProfile = {
+      ...userProfile,
+      unlockedJobContacts: updatedList,
+      missionsCompleted: {
+        ...(userProfile.missionsCompleted || { kwaiReferral: false, whatsappGroupJoined: false }),
+        tiktokReferral: true
+      },
       updatedAt: new Date().toISOString()
     };
     handleSaveUserProfile(updated);
@@ -377,6 +423,11 @@ export default function App() {
                     job={job}
                     onApply={(j) => setApplyModalJob(j)}
                     onPreviewWhatsApp={(j) => setWhatsAppModalJob(j)}
+                    onUnlockContact={(j) => setUnlockModalJob(j)}
+                    isContactUnlocked={Boolean(
+                      userProfile?.unlockedJobContacts?.includes(job.id) || 
+                      userProfile?.missionsCompleted?.tiktokReferral
+                    )}
                     onSelectCandidateManager={(j) => {
                       setCandidateManagerJobId(j.id);
                       setActiveTab('candidates');
@@ -523,6 +574,14 @@ export default function App() {
         isOpen={isDbSettingsOpen}
         onClose={() => setIsDbSettingsOpen(false)}
         onDbReset={handleDbReset}
+      />
+
+      <SponsorContactUnlockModal
+        isOpen={Boolean(unlockModalJob)}
+        job={unlockModalJob}
+        userProfile={userProfile}
+        onClose={() => setUnlockModalJob(null)}
+        onContactUnlocked={handleContactUnlocked}
       />
 
     </div>

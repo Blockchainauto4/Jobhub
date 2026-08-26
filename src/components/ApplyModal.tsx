@@ -300,6 +300,18 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
               </div>
             )}
 
+            {/* Special Gender / Dress Code Notice */}
+            {(job.genderRequirement === 'homens' || job.role.toUpperCase().includes('HOMENS')) && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-amber-300">
+                  <span>⚠️ Vaga com Perfil Operacional: APENAS HOMENS</span>
+                </div>
+                <p className="text-[11px] text-slate-300">
+                  Obrigatoriedade: Vestimenta completa sem detalhes (calça preta, sapato fechado antiderrapante) e <strong>SEM ADORNOS</strong> (sem brincos, anéis, correntes ou relógios).
+                </p>
+              </div>
+            )}
+
             {/* Candidate Name & Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>

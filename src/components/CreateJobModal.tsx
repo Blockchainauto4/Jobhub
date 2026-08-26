@@ -73,6 +73,9 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
   const [customCertInput, setCustomCertInput] = useState('');
   const [requirementsStr, setRequirementsStr] = useState('Chegar 15 minutos antes, Pontualidade');
 
+  const [requiresMissionToUnlockContact, setRequiresMissionToUnlockContact] = useState(false);
+  const [sponsorMissionUrl, setSponsorMissionUrl] = useState('https://www.tiktok.com/d/1/ZS9BMchsVwW1a-x3E0j/');
+  const [genderRequirement, setGenderRequirement] = useState<'todos' | 'homens' | 'mulheres'>('todos');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const suggestedCerts = getCertificationsForSector(category);
@@ -225,7 +228,10 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         desiredSkills,
         requiredCertifications,
         status: 'open' as const,
-        requirements
+        requirements,
+        requiresMissionToUnlockContact,
+        sponsorMissionUrl: requiresMissionToUnlockContact ? sponsorMissionUrl : undefined,
+        genderRequirement
       };
 
       const res = await fetch('/api/jobs', {
@@ -714,6 +720,86 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                 onChange={(e) => setRequirementsStr(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
               />
+            </div>
+
+            {/* Gender Requirement & Sponsor Mission Unlock */}
+            <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Restrição de Perfil / Gênero (Operacional):
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGenderRequirement('todos')}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition ${
+                      genderRequirement === 'todos'
+                        ? 'bg-slate-700 text-white border border-slate-500'
+                        : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                    }`}
+                  >
+                    Qualquer Perfil
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGenderRequirement('homens')}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
+                      genderRequirement === 'homens'
+                        ? 'bg-sky-500 text-slate-950 font-black'
+                        : 'bg-slate-900 text-sky-400 hover:bg-slate-800 border border-slate-800'
+                    }`}
+                  >
+                    APENAS HOMENS
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGenderRequirement('mulheres')}
+                    className={`py-1.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
+                      genderRequirement === 'mulheres'
+                        ? 'bg-pink-500 text-slate-950 font-black'
+                        : 'bg-slate-900 text-pink-400 hover:bg-slate-800 border border-slate-800'
+                    }`}
+                  >
+                    APENAS MULHERES
+                  </button>
+                </div>
+              </div>
+
+              {/* Sponsor Mission Unlock Toggle */}
+              <div className="pt-2 border-t border-slate-800/80">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={requiresMissionToUnlockContact}
+                    onChange={(e) => setRequiresMissionToUnlockContact(e.target.checked)}
+                    className="w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-0"
+                  />
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>🔒 Bloquear contato até completar Missão TikTok/Patrocinador</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      Engajamento
+                    </span>
+                  </span>
+                </label>
+
+                {requiresMissionToUnlockContact && (
+                  <div className="mt-2.5 space-y-1 pl-6">
+                    <label className="block text-[11px] font-bold text-slate-400">
+                      Link da Missão (Ex: TikTok do Patrocinador / Campanha):
+                    </label>
+                    <input
+                      type="url"
+                      value={sponsorMissionUrl}
+                      onChange={(e) => setSponsorMissionUrl(e.target.value)}
+                      placeholder="https://www.tiktok.com/d/1/ZS9BMchsVwW1a-x3E0j/"
+                      className="w-full px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs font-mono focus:outline-none focus:border-emerald-500"
+                    />
+                    <p className="text-[10px] text-slate-500">
+                      O candidato precisará acessar este link para liberar o telefone de contato no privado.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Submit */}
