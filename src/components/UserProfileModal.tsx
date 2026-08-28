@@ -290,20 +290,21 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-3 sm:p-5 flex justify-center items-start sm:items-center">
-      <div className="relative w-full max-w-xl max-h-[90vh] my-auto flex flex-col rounded-3xl bg-slate-900 border border-emerald-500/50 shadow-2xl shadow-emerald-950/60 text-slate-100 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-2.5 sm:p-4 md:p-6 flex justify-center items-center">
+      <div className="relative w-full max-w-xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/50 shadow-2xl shadow-emerald-950/60 text-slate-100 overflow-hidden my-auto">
         
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700/60 shadow-md"
           title="Fechar"
         >
           <X className="w-5 h-5" />
         </button>
 
         {savedSuccess ? (
-          <div className="text-center p-6 sm:p-8 space-y-4 overflow-y-auto custom-scrollbar">
+          <div className="text-center p-6 sm:p-8 space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500 flex items-center justify-center mx-auto animate-bounce">
               <CheckCircle2 className="w-9 h-9" />
             </div>
@@ -339,10 +340,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSave} className="flex flex-col h-full max-h-[90vh] overflow-hidden">
+          <form onSubmit={handleSave} className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
             
             {/* Header (Pinned) */}
-            <div className="p-5 sm:p-6 pb-3.5 shrink-0 border-b border-slate-800 bg-slate-900/95 pr-12">
+            <div className="p-4 sm:p-5 pb-3 sm:pb-3.5 shrink-0 border-b border-slate-800 bg-slate-900/95 pr-14">
               <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-0.5">
                 <User className="w-4 h-4" />
                 <span>{isFirstAccess ? 'Início Rápido • FreelaHub' : 'Perfil & Cadastro'}</span>
@@ -358,7 +359,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
 
             {/* Scrollable Form Body */}
-            <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-4 flex-1">
+            <div className="p-4 sm:p-5 overflow-y-auto min-h-0 flex-1 space-y-3.5 sm:space-y-4 overscroll-contain custom-scrollbar">
               {/* Error banner if invalid format */}
               {formError && (
                 <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/50 text-rose-300 text-xs flex items-start gap-2 animate-shake">
@@ -374,7 +375,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 onClick={() => setUserType('freelancer')}
                 className={`py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                   userType === 'freelancer'
-                    ? 'bg-emerald-500 text-slate-950 font-black'
+                    ? 'bg-emerald-500 text-slate-950 font-black shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -387,7 +388,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 onClick={() => setUserType('contractor')}
                 className={`py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
                   userType === 'contractor'
-                    ? 'bg-emerald-500 text-slate-950 font-black'
+                    ? 'bg-emerald-500 text-slate-950 font-black shadow-sm'
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -705,11 +706,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
 
             {/* Actions Bar (Pinned Footer) */}
-            <div className="p-4 sm:p-5 shrink-0 border-t border-slate-800 bg-slate-950/90 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="p-3.5 sm:p-4 shrink-0 border-t border-slate-800 bg-slate-950/95 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
               <button
                 type="button"
                 onClick={handleLoadDemoData}
-                className="text-xs text-slate-400 hover:text-emerald-400 flex items-center gap-1.5 transition"
+                className="text-xs text-slate-400 hover:text-emerald-400 flex items-center justify-center sm:justify-start gap-1.5 transition py-1"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Preencher Exemplo Válido</span>
@@ -719,14 +720,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition"
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition text-center"
                 >
                   {isFirstAccess ? 'Pular' : 'Cancelar'}
                 </button>
 
                 <button
                   type="submit"
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 text-xs font-black shadow-lg shadow-emerald-500/20 transition transform active:scale-95"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-green-500 hover:from-emerald-300 hover:to-green-400 text-slate-950 text-xs font-black shadow-lg shadow-emerald-500/20 transition transform active:scale-95 text-center"
                 >
                   <Save className="w-4 h-4" />
                   <span>{isFirstAccess ? 'Salvar & Continuar' : 'Salvar Dados'}</span>

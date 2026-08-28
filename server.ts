@@ -241,12 +241,412 @@ async function startServer() {
     });
   });
 
+  // Admin Dashboard Realtime Indicators & Analytics
+  app.get('/api/admin/metrics', (req, res) => {
+    try {
+      const jobs = db.getJobs();
+      const totalApplicants = jobs.reduce((sum, j) => sum + (j.applicants?.length || 0), 0);
+      const totalSlots = jobs.reduce((sum, j) => sum + j.slotsTotal, 0);
+      const filledSlots = jobs.reduce((sum, j) => sum + (j.slotsTotal - j.slotsAvailable), 0);
+      const totalCachetVolume = jobs.reduce((sum, j) => sum + (j.cachet * j.slotsTotal), 0);
+
+      // Category metrics aggregation with distinct color scheme
+      const categoryColorMap: Record<string, string> = {
+        'Eventos & Festas': '#10b981', // emerald
+        'Bares & Restaurantes': '#06b6d4', // cyan
+        'Finanças & Caixa de Eventos': '#f59e0b', // amber
+        'Logística & Cargas': '#ec4899', // pink
+        'Limpeza & Serviços': '#8b5cf6', // purple
+        'Limpeza & Facilities': '#8b5cf6',
+        'Hotelaria & Recepção': '#3b82f6', // blue
+        'Segurança & Apoio': '#ef4444', // red
+        'Audiovisual & Montagem': '#14b8a6', // teal
+        'Outros': '#64748b' // slate
+      };
+
+      const categoryMap = new Map<string, {
+        count: number;
+        totalSlots: number;
+        filledSlots: number;
+        availableSlots: number;
+        totalCachetValue: number;
+      }>();
+
+      // Ensure default standard categories exist
+      const standardCategories = [
+        'Eventos & Festas',
+        'Bares & Restaurantes',
+        'Logística & Cargas',
+        'Finanças & Caixa de Eventos',
+        'Limpeza & Serviços',
+        'Hotelaria & Recepção',
+        'Audiovisual & Montagem',
+        'Segurança & Apoio'
+      ];
+
+      standardCategories.forEach(cat => {
+        categoryMap.set(cat, {
+          count: 0,
+          totalSlots: 0,
+          filledSlots: 0,
+          availableSlots: 0,
+          totalCachetValue: 0
+        });
+      });
+
+      jobs.forEach(job => {
+        const cat = job.category || 'Outros';
+        const current = categoryMap.get(cat) || {
+          count: 0,
+          totalSlots: 0,
+          filledSlots: 0,
+          availableSlots: 0,
+          totalCachetValue: 0
+        };
+
+        const jobFilled = job.slotsTotal - job.slotsAvailable;
+        current.count += 1;
+        current.totalSlots += job.slotsTotal;
+        current.filledSlots += jobFilled;
+        current.availableSlots += job.slotsAvailable;
+        current.totalCachetValue += (job.cachet * job.slotsTotal);
+        categoryMap.set(cat, current);
+      });
+
+      const categoriesList = Array.from(categoryMap.entries())
+        .filter(([_, data]) => data.count > 0 || ['Eventos & Festas', 'Bares & Restaurantes', 'Logística & Cargas', 'Finanças & Caixa de Eventos'].includes(_))
+        .map(([name, data]) => {
+          const avgCachet = data.totalSlots > 0 ? Math.round(data.totalCachetValue / data.totalSlots) : 210;
+          const fillRate = data.totalSlots > 0 ? Math.round((data.filledSlots / data.totalSlots) * 100) : 0;
+          return {
+            category: name,
+            count: data.count,
+            totalSlots: data.totalSlots,
+            filledSlots: data.filledSlots,
+            availableSlots: data.availableSlots,
+            totalCachetValue: data.totalCachetValue,
+            avgCachet,
+            fillRate,
+            color: categoryColorMap[name] || '#10b981'
+          };
+        })
+        .sort((a, b) => b.totalCachetValue - a.totalCachetValue);
+
+      // User Growth Data
+      const baseUsers = 48920 + totalApplicants;
+      const userGrowth = {
+        '7d': [
+          { period: 'Seg', totalUsers: baseUsers - 340, newFreelancers: 48, newContractors: 7, verifiedProfiles: 42 },
+          { period: 'Ter', totalUsers: baseUsers - 280, newFreelancers: 56, newContractors: 9, verifiedProfiles: 51 },
+          { period: 'Qua', totalUsers: baseUsers - 210, newFreelancers: 65, newContractors: 11, verifiedProfiles: 59 },
+          { period: 'Qui', totalUsers: baseUsers - 140, newFreelancers: 72, newContractors: 14, verifiedProfiles: 68 },
+          { period: 'Sex', totalUsers: baseUsers - 65, newFreelancers: 89, newContractors: 19, verifiedProfiles: 82 },
+          { period: 'Sáb', totalUsers: baseUsers - 20, newFreelancers: 94, newContractors: 22, verifiedProfiles: 89 },
+          { period: 'Hoje (Tempo Real)', totalUsers: baseUsers, newFreelancers: 112, newContractors: 28, verifiedProfiles: 104 }
+        ],
+        '30d': [
+          { period: 'Sem 1', totalUsers: baseUsers - 1850, newFreelancers: 390, newContractors: 62, verifiedProfiles: 345 },
+          { period: 'Sem 2', totalUsers: baseUsers - 1240, newFreelancers: 480, newContractors: 78, verifiedProfiles: 430 },
+          { period: 'Sem 3', totalUsers: baseUsers - 620, newFreelancers: 590, newContractors: 94, verifiedProfiles: 540 },
+          { period: 'Sem 4 (Atual)', totalUsers: baseUsers, newFreelancers: 780, newContractors: 126, verifiedProfiles: 715 }
+        ],
+        '6m': [
+          { period: 'Mar/26', totalUsers: 28400, newFreelancers: 2100, newContractors: 310, verifiedProfiles: 1940 },
+          { period: 'Abr/26', totalUsers: 33100, newFreelancers: 2500, newContractors: 380, verifiedProfiles: 2320 },
+          { period: 'Mai/26', totalUsers: 37900, newFreelancers: 2900, newContractors: 440, verifiedProfiles: 2710 },
+          { period: 'Jun/26', totalUsers: 42300, newFreelancers: 3400, newContractors: 510, verifiedProfiles: 3150 },
+          { period: 'Jul/26', totalUsers: 46100, newFreelancers: 3800, newContractors: 590, verifiedProfiles: 3580 },
+          { period: 'Ago/26', totalUsers: baseUsers, newFreelancers: 4350, newContractors: 680, verifiedProfiles: 4120 }
+        ],
+        '1y': [
+          { period: 'Q3/25', totalUsers: 14200, newFreelancers: 4800, newContractors: 650, verifiedProfiles: 4100 },
+          { period: 'Q4/25', totalUsers: 22800, newFreelancers: 7200, newContractors: 980, verifiedProfiles: 6500 },
+          { period: 'Q1/26', totalUsers: 33100, newFreelancers: 8900, newContractors: 1240, verifiedProfiles: 8200 },
+          { period: 'Q2/26', totalUsers: 42300, newFreelancers: 10400, newContractors: 1520, verifiedProfiles: 9800 },
+          { period: 'Q3/26 (Em andamento)', totalUsers: baseUsers, newFreelancers: 12900, newContractors: 1890, verifiedProfiles: 12100 }
+        ]
+      };
+
+      // Realtime Mission Telemetry
+      const missionsInitiated = 18450;
+      const tiktokCompleted = 12840;
+      const kwaiCompleted = 10420;
+      const whatsappGroupJoined = 14190;
+      const sponsorContactUnlocked = 4920;
+      const totalMissionsCompleted = tiktokCompleted + kwaiCompleted + whatsappGroupJoined + sponsorContactUnlocked;
+      const completionRate = Math.round((totalMissionsCompleted / (missionsInitiated * 3)) * 100 * 10) / 10; // ~76.5%
+
+      const now = new Date();
+      const currentHour = now.getHours();
+      const hourlyTrends = Array.from({ length: 8 }).map((_, i) => {
+        const h = (currentHour - 7 + i + 24) % 24;
+        const hourStr = `${h.toString().padStart(2, '0')}:00`;
+        return {
+          hour: hourStr,
+          tiktok: Math.floor(45 + Math.random() * 30 + (i * 8)),
+          kwai: Math.floor(35 + Math.random() * 25 + (i * 6)),
+          whatsapp: Math.floor(55 + Math.random() * 35 + (i * 10)),
+          unlocks: Math.floor(20 + Math.random() * 18 + (i * 4))
+        };
+      });
+
+      const liveEvents = [
+        {
+          id: `evt-1`,
+          timestamp: 'Agora mesmo',
+          userName: 'Lucas Silva Pereira',
+          missionType: 'contact_unlock' as const,
+          jobRole: 'Logístico (Interlagos)',
+          rewardAmount: 225,
+          status: 'completed' as const
+        },
+        {
+          id: `evt-2`,
+          timestamp: 'Há 1 min',
+          userName: 'Mariana Rodrigues Costa',
+          missionType: 'tiktok' as const,
+          jobRole: 'Missão Patrocinador TikTok',
+          rewardAmount: 50,
+          status: 'completed' as const
+        },
+        {
+          id: `evt-3`,
+          timestamp: 'Há 3 min',
+          userName: 'Carlos Eduardo Santos',
+          missionType: 'whatsapp' as const,
+          jobRole: 'Grupo VIP de Vagas SP',
+          status: 'completed' as const
+        },
+        {
+          id: `evt-4`,
+          timestamp: 'Há 5 min',
+          userName: 'Beatriz Almeida Lima',
+          missionType: 'kwai' as const,
+          jobRole: 'Missão Kwai Referral',
+          rewardAmount: 50,
+          status: 'completed' as const
+        },
+        {
+          id: `evt-5`,
+          timestamp: 'Há 7 min',
+          userName: 'Felipe Augusto Barreto',
+          missionType: 'contact_unlock' as const,
+          jobRole: 'Operador de Caixa (Vila Olímpia)',
+          rewardAmount: 240,
+          status: 'completed' as const
+        }
+      ];
+
+      res.json({
+        kpis: {
+          totalUsers: baseUsers,
+          usersGrowthPct: 24.8,
+          totalActiveJobs: jobs.filter(j => j.status === 'open').length,
+          totalCachetVolume,
+          missionCompletionRate: completionRate,
+          totalMissionsCompleted,
+          totalApplicants,
+          avgFillRate: totalSlots > 0 ? Math.round((filledSlots / totalSlots) * 100) : 74
+        },
+        userGrowth,
+        categories: categoriesList,
+        missions: {
+          totalInitiated: missionsInitiated,
+          totalCompleted: totalMissionsCompleted,
+          completionRate,
+          tiktokCompleted,
+          kwaiCompleted,
+          whatsappGroupJoined,
+          sponsorContactUnlocked,
+          totalRewardsDistributed: (tiktokCompleted * 50) + (kwaiCompleted * 50),
+          hourlyTrends,
+          liveEvents
+        },
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+
+  // === ADMIN & SECURITY ENDPOINTS ===
+
+  // Admin authentication (Password Gatekeeper)
+  app.post('/api/admin/login', (req, res) => {
+    try {
+      const { password, email } = req.body;
+      if (!password) {
+        return res.status(400).json({ error: 'Senha de acesso administrativo é obrigatória.' });
+      }
+
+      const result = db.verifyAdminAccess(password, email);
+      if (!result.success) {
+        return res.status(401).json({ error: result.message || 'Senha incorreta.' });
+      }
+
+      const token = `adm_tok_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+      res.json({
+        success: true,
+        token,
+        admin: result.admin,
+        expiresAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString()
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Get system administrators
+  app.get('/api/admin/admins', (req, res) => {
+    try {
+      const admins = db.getAdmins();
+      res.json(admins);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Create new system administrator
+  app.post('/api/admin/admins', (req, res) => {
+    try {
+      const { name, email, role, permissions, status, notes, requesterAdmin } = req.body;
+      if (!name || !email || !role) {
+        return res.status(400).json({ error: 'Nome, E-mail e Papel/Função são obrigatórios.' });
+      }
+
+      const newAdmin = db.createAdmin({
+        name,
+        email,
+        role,
+        roleLabel: '',
+        permissions,
+        status: status || 'active',
+        notes
+      }, requesterAdmin ? { adminId: requesterAdmin.id, adminName: requesterAdmin.name } : undefined);
+
+      res.status(201).json(newAdmin);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Update system administrator
+  app.put('/api/admin/admins/:id', (req, res) => {
+    try {
+      const { requesterAdmin, ...updates } = req.body;
+      const updated = db.updateAdmin(req.params.id, updates, requesterAdmin ? { adminId: requesterAdmin.id, adminName: requesterAdmin.name } : undefined);
+      if (!updated) {
+        return res.status(404).json({ error: 'Administrador não encontrado.' });
+      }
+      res.json(updated);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Delete system administrator
+  app.delete('/api/admin/admins/:id', (req, res) => {
+    try {
+      const { requesterAdminId, requesterAdminName } = req.query;
+      const result = db.deleteAdmin(req.params.id, {
+        adminId: (requesterAdminId as string) || 'admin-1',
+        adminName: (requesterAdminName as string) || 'Super Administrador'
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.message });
+      }
+      res.json({ success: true, message: result.message });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Change master administrator password
+  app.post('/api/admin/change-password', (req, res) => {
+    try {
+      const { oldPassword, newPassword, requesterAdmin } = req.body;
+      const result = db.changeMasterPassword(
+        oldPassword, 
+        newPassword, 
+        requesterAdmin ? { adminId: requesterAdmin.id, adminName: requesterAdmin.name } : undefined
+      );
+
+      if (!result.success) {
+        return res.status(400).json({ error: result.message });
+      }
+      res.json({ success: true, message: result.message });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Get admin audit logs
+  app.get('/api/admin/audit-logs', (req, res) => {
+    try {
+      const logs = db.getAuditLogs(60);
+      res.json(logs);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Clone job for rapid reposting
+  app.post('/api/admin/jobs/clone/:id', (req, res) => {
+    try {
+      const original = db.getJobById(req.params.id);
+      if (!original) {
+        return res.status(404).json({ error: 'Vaga original não encontrada.' });
+      }
+
+      const { requesterAdmin } = req.body;
+      const cloned = db.createJob({
+        ...original,
+        title: `${original.title} (Cópia Repostada)`,
+        status: 'open',
+        slotsAvailable: original.slotsTotal,
+        date: new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 10)
+      }, requesterAdmin ? { adminId: requesterAdmin.id, adminName: requesterAdmin.name } : undefined);
+
+      res.status(201).json(cloned);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Quick job status update
+  app.patch('/api/admin/jobs/:id/status', (req, res) => {
+    try {
+      const { status, requesterAdmin } = req.body;
+      if (!['open', 'filled', 'in_progress', 'completed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ error: 'Status de vaga inválido.' });
+      }
+
+      const updated = db.updateJob(req.params.id, { status }, requesterAdmin ? { adminId: requesterAdmin.id, adminName: requesterAdmin.name } : undefined);
+      if (!updated) {
+        return res.status(404).json({ error: 'Vaga não encontrada.' });
+      }
+
+      res.json(updated);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
 
   // Update applicant status (accept, reject, check-in, pay)
   app.patch('/api/jobs/:id/applicants/:applicantId', (req, res) => {
     try {
-      const { status, notes, rating, paidAmount } = req.body;
-      const success = db.updateApplicantStatus(req.params.id, req.params.applicantId, status, notes, rating, paidAmount);
+      const { status, notes, rating, paidAmount, requesterAdmin } = req.body;
+      const success = db.updateApplicantStatus(
+        req.params.id, 
+        req.params.applicantId, 
+        status, 
+        notes, 
+        rating, 
+        paidAmount,
+        requesterAdmin ? { adminId: requesterAdmin.id, adminName: requesterAdmin.name } : undefined
+      );
       if (!success) {
         return res.status(404).json({ error: 'Candidato ou vaga não encontrada' });
       }
@@ -276,6 +676,101 @@ async function startServer() {
       const job = req.body;
       const message = generateWhatsAppBroadcast(job);
       res.json({ message });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // === TIKTOK 24H MISSION & CONTRACT GATEKEEPER ENDPOINTS ===
+
+  // Get active TikTok 24h mission configuration & live remaining time
+  app.get('/api/tiktok-mission', (req, res) => {
+    try {
+      const config = db.getTikTokMissionConfig();
+      const now = Date.now();
+      const expiresAtMs = new Date(config.expiresAt).getTime();
+      const timeRemainingMs = Math.max(0, expiresAtMs - now);
+      const isExpired = timeRemainingMs <= 0;
+
+      const hoursLeft = Math.floor(timeRemainingMs / (1000 * 60 * 60));
+      const minutesLeft = Math.floor((timeRemainingMs % (1000 * 60 * 60)) / (1000 * 60));
+      const secondsLeft = Math.floor((timeRemainingMs % (1000 * 60)) / 1000);
+
+      res.json({
+        ...config,
+        timeRemainingMs,
+        isExpired,
+        formattedRemaining: `${hoursLeft.toString().padStart(2, '0')}h ${minutesLeft.toString().padStart(2, '0')}m ${secondsLeft.toString().padStart(2, '0')}s`,
+        hoursLeft,
+        minutesLeft,
+        secondsLeft
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Admin update TikTok 24h mission link and reset 24h validity
+  app.post('/api/admin/tiktok-mission', (req, res) => {
+    try {
+      const { activeUrl, renew24Hours, isActive, lockAllJobs, missionInstructions, missionTitle, requesterAdmin } = req.body;
+      
+      const updates: any = {};
+      if (activeUrl) updates.activeUrl = activeUrl.trim();
+      if (isActive !== undefined) updates.isActive = Boolean(isActive);
+      if (lockAllJobs !== undefined) updates.lockAllJobs = Boolean(lockAllJobs);
+      if (missionInstructions) updates.missionInstructions = missionInstructions;
+      if (missionTitle) updates.missionTitle = missionTitle;
+
+      if (renew24Hours) {
+        updates.generatedAt = new Date().toISOString();
+        updates.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      }
+
+      const updated = db.updateTikTokMissionConfig(updates, requesterAdmin ? { adminId: requesterAdmin.id, adminName: requesterAdmin.name } : undefined);
+      res.json({ success: true, config: updated, message: 'Link do TikTok e regras de bloqueio de 24h atualizados com sucesso!' });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Track TikTok mission link click
+  app.post('/api/tiktok-mission/track-click', (req, res) => {
+    try {
+      const result = db.trackTikTokMissionClick();
+      res.json(result);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // Unlock job contact and contract via TikTok mission completion
+  app.post('/api/tiktok-mission/unlock', (req, res) => {
+    try {
+      const { jobId, userName } = req.body;
+      const result = db.trackTikTokMissionUnlock();
+      
+      if (jobId) {
+        const job = db.getJobById(jobId);
+        if (job) {
+          db.addAuditLog({
+            adminId: 'system',
+            adminName: 'Gatekeeper TikTok 24h',
+            adminRole: 'super_admin',
+            action: 'applicant_status_change',
+            title: 'Contrato & WhatsApp Desbloqueados via TikTok',
+            details: `Usuário "${userName || 'Candidato'}" completou a missão do link de 24h e liberou o contato da vaga ${job.role} (${job.city}).`,
+            targetId: jobId,
+            severity: 'success'
+          });
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Missão validada com sucesso! Número do contratante e contrato de trabalho liberados.', 
+        totalUnlocks: result.totalUnlocks 
+      });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }

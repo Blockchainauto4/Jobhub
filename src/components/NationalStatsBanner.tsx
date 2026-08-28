@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Zap, CheckCircle, Sparkles, MapPin } from 'lucide-react';
+import { Users, Zap, CheckCircle, Sparkles, MapPin, BarChart3, ArrowRight } from 'lucide-react';
 
 interface NationalStatsData {
   activeFreelancers: number;
@@ -9,7 +9,11 @@ interface NationalStatsData {
   satisfactionRate: number;
 }
 
-export const NationalStatsBanner: React.FC = () => {
+interface NationalStatsBannerProps {
+  onNavigateToDashboard?: () => void;
+}
+
+export const NationalStatsBanner: React.FC<NationalStatsBannerProps> = ({ onNavigateToDashboard }) => {
   const [stats, setStats] = useState<NationalStatsData>({
     activeFreelancers: 48920,
     totalJobsPosted: 12456,
@@ -61,6 +65,20 @@ export const NationalStatsBanner: React.FC = () => {
               <CheckCircle className="w-3.5 h-3.5" /> 100% de Diárias Pagas no Término
             </span>
           </div>
+
+          {onNavigateToDashboard && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onNavigateToDashboard}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 shadow-md shadow-emerald-500/20 transition group"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>Acessar Painel de Indicadores & BI em Tempo Real</span>
+                <ArrowRight className="w-3.5 h-3.5 transition group-hover:translate-x-0.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Live Metric Cards */}

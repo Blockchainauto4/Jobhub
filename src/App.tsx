@@ -17,8 +17,9 @@ import { DatabaseSettingsModal } from './components/DatabaseSettingsModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { MissionsRewardsModal } from './components/MissionsRewardsModal';
 import { SponsorContactUnlockModal } from './components/SponsorContactUnlockModal';
+import { AdminDashboard } from './components/AdminDashboard';
 import { FreelanceJob, JobApplicant, BrazilState, UserProfile } from './types';
-import { Briefcase, RefreshCw, Filter, UserCheck, GraduationCap, Tag, Gift, Sparkles, Lock } from 'lucide-react';
+import { Briefcase, RefreshCw, Filter, UserCheck, GraduationCap, Tag, Gift, Sparkles, Lock, BarChart3 } from 'lucide-react';
 
 const CATEGORIES = [
   'Todas',
@@ -37,7 +38,7 @@ const USER_PROFILE_STORAGE_KEY = 'freelahub_user_profile';
 export default function App() {
   const [jobs, setJobs] = useState<FreelanceJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'jobs' | 'candidates' | 'calculator' | 'radar'>('jobs');
+  const [activeTab, setActiveTab] = useState<'jobs' | 'candidates' | 'calculator' | 'radar' | 'dashboard'>('jobs');
   
   // User Profile in LocalStorage (Cache)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -308,7 +309,7 @@ export default function App() {
           <div className="space-y-6">
             
             {/* National Platform Stats */}
-            <NationalStatsBanner />
+            <NationalStatsBanner onNavigateToDashboard={() => setActiveTab('dashboard')} />
 
             {/* Main Interactive Hero Banner with Search, State/City/Neighborhood Filters */}
             <HeroBanner
@@ -445,6 +446,7 @@ export default function App() {
             jobs={jobs}
             selectedJobId={candidateManagerJobId}
             onUpdateApplicantStatus={handleUpdateApplicantStatus}
+            onNavigateToDashboard={() => setActiveTab('dashboard')}
           />
         )}
 
@@ -461,6 +463,16 @@ export default function App() {
         {/* Tab 4: Calculadora de Ganhos PIX */}
         {activeTab === 'calculator' && (
           <FreelancerCalculator />
+        )}
+
+        {/* Tab 5: Dashboard Administrativo & BI com Recharts */}
+        {activeTab === 'dashboard' && (
+          <AdminDashboard
+            jobs={jobs}
+            onNavigateToTab={setActiveTab}
+            onOpenCreateJob={() => setIsCreateModalOpen(true)}
+            onRefreshJobs={fetchJobs}
+          />
         )}
 
       </main>

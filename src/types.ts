@@ -152,6 +152,75 @@ export interface FreelancerProfile {
   rating: number;
 }
 
+export interface UserGrowthDataPoint {
+  period: string;
+  totalUsers: number;
+  newFreelancers: number;
+  newContractors: number;
+  verifiedProfiles: number;
+}
+
+export interface CategoryMetric {
+  category: JobSector | string;
+  count: number;
+  totalSlots: number;
+  filledSlots: number;
+  availableSlots: number;
+  totalCachetValue: number;
+  avgCachet: number;
+  fillRate: number;
+  color: string;
+}
+
+export interface MissionTelemetry {
+  totalInitiated: number;
+  totalCompleted: number;
+  completionRate: number;
+  tiktokCompleted: number;
+  kwaiCompleted: number;
+  whatsappGroupJoined: number;
+  sponsorContactUnlocked: number;
+  totalRewardsDistributed: number;
+  hourlyTrends: {
+    hour: string;
+    tiktok: number;
+    kwai: number;
+    whatsapp: number;
+    unlocks: number;
+  }[];
+  liveEvents: {
+    id: string;
+    timestamp: string;
+    userName: string;
+    missionType: 'tiktok' | 'kwai' | 'whatsapp' | 'contact_unlock';
+    jobRole?: string;
+    rewardAmount?: number;
+    status: 'completed';
+  }[];
+}
+
+export interface AdminDashboardMetrics {
+  kpis: {
+    totalUsers: number;
+    usersGrowthPct: number;
+    totalActiveJobs: number;
+    totalCachetVolume: number;
+    missionCompletionRate: number;
+    totalMissionsCompleted: number;
+    totalApplicants: number;
+    avgFillRate: number;
+  };
+  userGrowth: {
+    '7d': UserGrowthDataPoint[];
+    '30d': UserGrowthDataPoint[];
+    '6m': UserGrowthDataPoint[];
+    '1y': UserGrowthDataPoint[];
+  };
+  categories: CategoryMetric[];
+  missions: MissionTelemetry;
+  lastUpdated: string;
+}
+
 export interface DbStatusInfo {
   engine: 'neon_postgres' | 'local_persistent_json';
   status: 'connected' | 'fallback_active';
@@ -160,5 +229,83 @@ export interface DbStatusInfo {
   databaseUrlConfigured: boolean;
   sampleSqlSchema: string;
   vercelInstructions: string;
+}
+
+export type AdminRole = 
+  | 'super_admin' 
+  | 'job_manager' 
+  | 'candidate_reviewer' 
+  | 'financial_operator';
+
+export interface AdminPermissions {
+  canPostJobs: boolean;
+  canEditJobs: boolean;
+  canDeleteJobs: boolean;
+  canManageApplicants: boolean;
+  canApprovePixPayments: boolean;
+  canManageAdmins: boolean;
+  canViewTelemetry: boolean;
+  canExportReports: boolean;
+}
+
+export interface SystemAdmin {
+  id: string;
+  name: string;
+  email: string;
+  role: AdminRole;
+  roleLabel: string;
+  status: 'active' | 'blocked';
+  createdAt: string;
+  lastLoginAt?: string;
+  permissions: AdminPermissions;
+  avatarUrl?: string;
+  notes?: string;
+}
+
+export interface AdminAuditLog {
+  id: string;
+  timestamp: string;
+  adminId: string;
+  adminName: string;
+  adminRole: AdminRole;
+  action: 
+    | 'login' 
+    | 'logout'
+    | 'job_create' 
+    | 'job_edit' 
+    | 'job_delete' 
+    | 'job_status_change'
+    | 'applicant_status_change' 
+    | 'pix_payment_confirm' 
+    | 'admin_create' 
+    | 'admin_update' 
+    | 'admin_delete' 
+    | 'password_change'
+    | 'security_policy_update';
+  title: string;
+  details: string;
+  targetId?: string;
+  severity: 'info' | 'warning' | 'success' | 'danger';
+}
+
+export interface AdminSession {
+  token: string;
+  admin: SystemAdmin;
+  expiresAt: string;
+}
+
+export interface TikTokMissionConfig {
+  id: string;
+  activeUrl: string;
+  generatedAt: string;
+  expiresAt: string;
+  isActive: boolean;
+  lockAllJobs: boolean;
+  totalClicks: number;
+  totalUnlocks: number;
+  missionTitle: string;
+  missionInstructions: string;
+  rewardDescription: string;
+  updatedAt: string;
 }
 

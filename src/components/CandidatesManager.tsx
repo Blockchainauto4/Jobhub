@@ -13,7 +13,8 @@ import {
   Tag,
   Award,
   MapPin,
-  X
+  X,
+  BarChart3
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { FreelanceJob, JobApplicant } from '../types';
@@ -23,12 +24,14 @@ interface CandidatesManagerProps {
   jobs: FreelanceJob[];
   selectedJobId?: string;
   onUpdateApplicantStatus: (jobId: string, applicantId: string, status: JobApplicant['status'], notes?: string, paidAmount?: number) => Promise<void>;
+  onNavigateToDashboard?: () => void;
 }
 
 export const CandidatesManager: React.FC<CandidatesManagerProps> = ({
   jobs,
   selectedJobId,
-  onUpdateApplicantStatus
+  onUpdateApplicantStatus,
+  onNavigateToDashboard
 }) => {
   const [filterJobId, setFilterJobId] = useState<string>(selectedJobId || 'all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -136,7 +139,17 @@ Por favor, responda com *"CONFIRMADO"* para garantirmos sua presença!`;
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {onNavigateToDashboard && (
+              <button
+                type="button"
+                onClick={onNavigateToDashboard}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-cyan-400 hover:from-emerald-300 hover:to-cyan-300 shadow-md shadow-emerald-500/20 transition"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>Dashboard BI</span>
+              </button>
+            )}
             <div className="px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-center">
               <div className="text-xl font-black text-emerald-400">{allCandidates.length}</div>
               <div className="text-[10px] uppercase font-bold text-slate-400">Inscritos</div>

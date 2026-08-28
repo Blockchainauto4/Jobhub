@@ -255,24 +255,26 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-3 sm:p-5 flex justify-center items-start sm:items-center">
-      <div className="relative w-full max-w-2xl rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-5 sm:p-6 text-slate-100 my-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-2.5 sm:p-4 md:p-6 flex justify-center items-center">
+      <div className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-4 sm:p-6 text-slate-100 my-auto overflow-y-auto min-h-0 custom-scrollbar">
         
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700/60 shadow-md"
+          title="Fechar"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="mb-5">
+        <div className="mb-4 sm:mb-5 pr-12">
           <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4" />
             <span>Publicador de Vagas FreelaHub</span>
           </div>
-          <h2 className="text-2xl font-black text-white">
+          <h2 className="text-xl sm:text-2xl font-black text-white">
             Criar e Divulgar Nova Vaga
           </h2>
           <p className="text-xs text-slate-400">

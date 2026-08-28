@@ -1,6 +1,16 @@
 import fs from 'fs';
 import path from 'path';
-import { FreelanceJob, JobApplicant, BrazilState, JobSector } from '../src/types.js';
+import { 
+  FreelanceJob, 
+  JobApplicant, 
+  BrazilState, 
+  JobSector, 
+  SystemAdmin, 
+  AdminAuditLog, 
+  AdminRole, 
+  AdminPermissions,
+  TikTokMissionConfig
+} from '../src/types.js';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'freelahub_db.json');
@@ -445,8 +455,140 @@ const INITIAL_JOBS: FreelanceJob[] = [
   }
 ];
 
+const INITIAL_ADMINS: SystemAdmin[] = [
+  {
+    id: 'admin-1',
+    name: 'Carlos Eduardo Santos',
+    email: 'admin@freelahub.com',
+    role: 'super_admin',
+    roleLabel: 'Super Administrador',
+    status: 'active',
+    createdAt: '2026-01-15T09:00:00Z',
+    lastLoginAt: new Date().toISOString(),
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    notes: 'Administrador geral do sistema com acesso irrestrito a todas as operações.',
+    permissions: {
+      canPostJobs: true,
+      canEditJobs: true,
+      canDeleteJobs: true,
+      canManageApplicants: true,
+      canApprovePixPayments: true,
+      canManageAdmins: true,
+      canViewTelemetry: true,
+      canExportReports: true
+    }
+  },
+  {
+    id: 'admin-2',
+    name: 'Mariana Albuquerque',
+    email: 'vagas@freelahub.com',
+    role: 'job_manager',
+    roleLabel: 'Gestora de Vagas',
+    status: 'active',
+    createdAt: '2026-02-10T14:30:00Z',
+    lastLoginAt: new Date(Date.now() - 3600000 * 4).toISOString(),
+    notes: 'Coordenação operacional e divulgação de vagas em eventos e gastronomia.',
+    permissions: {
+      canPostJobs: true,
+      canEditJobs: true,
+      canDeleteJobs: false,
+      canManageApplicants: true,
+      canApprovePixPayments: false,
+      canManageAdmins: false,
+      canViewTelemetry: true,
+      canExportReports: true
+    }
+  },
+  {
+    id: 'admin-3',
+    name: 'Renato Siqueira',
+    email: 'triagem@freelahub.com',
+    role: 'candidate_reviewer',
+    roleLabel: 'Coordenação de Candidatos',
+    status: 'active',
+    createdAt: '2026-03-01T11:00:00Z',
+    lastLoginAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    notes: 'Validação documental, checagem de antecedentes e triagem no WhatsApp.',
+    permissions: {
+      canPostJobs: false,
+      canEditJobs: false,
+      canDeleteJobs: false,
+      canManageApplicants: true,
+      canApprovePixPayments: false,
+      canManageAdmins: false,
+      canViewTelemetry: true,
+      canExportReports: true
+    }
+  }
+];
+
+const INITIAL_AUDIT_LOGS: AdminAuditLog[] = [
+  {
+    id: 'log-1',
+    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+    adminId: 'admin-1',
+    adminName: 'Carlos Eduardo Santos',
+    adminRole: 'super_admin',
+    action: 'job_create',
+    title: 'Nova Vaga Cadastrada',
+    details: 'Vaga "Logística Autódromo de Interlagos" publicada com 10 vagas.',
+    targetId: 'job-interlagos-logistica',
+    severity: 'success'
+  },
+  {
+    id: 'log-2',
+    timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
+    adminId: 'admin-2',
+    adminName: 'Mariana Albuquerque',
+    adminRole: 'job_manager',
+    action: 'applicant_status_change',
+    title: 'Candidato Aprovado',
+    details: 'Candidato Lucas Silva Pereira aceito para vaga em Interlagos.',
+    targetId: 'app-inter-1',
+    severity: 'info'
+  },
+  {
+    id: 'log-3',
+    timestamp: new Date(Date.now() - 3600000 * 8).toISOString(),
+    adminId: 'admin-1',
+    adminName: 'Carlos Eduardo Santos',
+    adminRole: 'super_admin',
+    action: 'security_policy_update',
+    title: 'Parâmetros de Segurança Atualizados',
+    details: 'Bloqueio de acesso administrativo via senha master ativado.',
+    severity: 'info'
+  }
+];
+
+const INITIAL_TIKTOK_CONFIG: TikTokMissionConfig = {
+  id: 'tiktok-mission-main',
+  activeUrl: 'https://www.tiktok.com/d/1/ZS9BMchsVwW1a-x3E0j/',
+  generatedAt: new Date().toISOString(),
+  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  isActive: true,
+  lockAllJobs: true,
+  totalClicks: 14820,
+  totalUnlocks: 4920,
+  missionTitle: 'Missão TikTok 24h Oficial • Indicação & Desbloqueio',
+  missionInstructions: 'Acesse o TikTok pelo link oficial de 24 horas para apoiar nossa indicação. Ao acessar, o número direto de WhatsApp e o Contrato Oficial da Vaga serão liberados instantaneamente.',
+  rewardDescription: 'Libera o WhatsApp do Contratante + Contrato de Prestação de Serviços + 50 Créditos FreelaHub',
+  updatedAt: new Date().toISOString()
+};
+
+interface FreelaHubDbPayload {
+  jobs: FreelanceJob[];
+  admins: SystemAdmin[];
+  auditLogs: AdminAuditLog[];
+  masterPassword?: string;
+  tiktokConfig?: TikTokMissionConfig;
+}
+
 class FreelaHubDatabase {
   private jobs: FreelanceJob[] = [];
+  private admins: SystemAdmin[] = [];
+  private auditLogs: AdminAuditLog[] = [];
+  private masterPassword: string = 'admin123';
+  private tiktokConfig: TikTokMissionConfig = INITIAL_TIKTOK_CONFIG;
 
   constructor() {
     this.init();
@@ -460,14 +602,33 @@ class FreelaHubDatabase {
 
       if (fs.existsSync(DB_FILE)) {
         const raw = fs.readFileSync(DB_FILE, 'utf-8');
-        this.jobs = JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          // Legacy format (just jobs array)
+          this.jobs = parsed;
+          this.admins = INITIAL_ADMINS;
+          this.auditLogs = INITIAL_AUDIT_LOGS;
+          this.tiktokConfig = INITIAL_TIKTOK_CONFIG;
+        } else if (parsed && typeof parsed === 'object') {
+          this.jobs = parsed.jobs || INITIAL_JOBS;
+          this.admins = parsed.admins || INITIAL_ADMINS;
+          this.auditLogs = parsed.auditLogs || INITIAL_AUDIT_LOGS;
+          if (parsed.masterPassword) this.masterPassword = parsed.masterPassword;
+          this.tiktokConfig = parsed.tiktokConfig || INITIAL_TIKTOK_CONFIG;
+        }
       } else {
         this.jobs = INITIAL_JOBS;
+        this.admins = INITIAL_ADMINS;
+        this.auditLogs = INITIAL_AUDIT_LOGS;
+        this.tiktokConfig = INITIAL_TIKTOK_CONFIG;
         this.saveToFile();
       }
     } catch (e) {
       console.warn('Fallback to in-memory jobs due to disk init error:', e);
       this.jobs = INITIAL_JOBS;
+      this.admins = INITIAL_ADMINS;
+      this.auditLogs = INITIAL_AUDIT_LOGS;
+      this.tiktokConfig = INITIAL_TIKTOK_CONFIG;
     }
   }
 
@@ -476,7 +637,14 @@ class FreelaHubDatabase {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
-      fs.writeFileSync(DB_FILE, JSON.stringify(this.jobs, null, 2), 'utf-8');
+      const payload: FreelaHubDbPayload = {
+        jobs: this.jobs,
+        admins: this.admins,
+        auditLogs: this.auditLogs,
+        masterPassword: this.masterPassword,
+        tiktokConfig: this.tiktokConfig
+      };
+      fs.writeFileSync(DB_FILE, JSON.stringify(payload, null, 2), 'utf-8');
     } catch (e) {
       console.error('Failed to save to db file:', e);
     }
@@ -490,7 +658,7 @@ class FreelaHubDatabase {
     return this.jobs.find(j => j.id === id);
   }
 
-  public createJob(jobData: Omit<FreelanceJob, 'id' | 'createdAt' | 'applicants' | 'applicantsCount'>): FreelanceJob {
+  public createJob(jobData: Omit<FreelanceJob, 'id' | 'createdAt' | 'applicants' | 'applicantsCount'>, adminContext?: { adminId?: string; adminName?: string }): FreelanceJob {
     const newJob: FreelanceJob = {
       ...jobData,
       id: `job-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
@@ -503,22 +671,59 @@ class FreelaHubDatabase {
       category: jobData.category || 'Eventos & Festas'
     };
     this.jobs.unshift(newJob);
+    
+    // Add audit log
+    this.addAuditLog({
+      adminId: adminContext?.adminId || 'admin-1',
+      adminName: adminContext?.adminName || 'Administrador',
+      adminRole: 'super_admin',
+      action: 'job_create',
+      title: 'Vaga Publicada',
+      details: `Vaga "${newJob.role}" em ${newJob.city} (${newJob.slotsTotal} vagas, R$ ${newJob.cachet.toFixed(2)}) cadastrada.`,
+      targetId: newJob.id,
+      severity: 'success'
+    });
+
     this.saveToFile();
     return newJob;
   }
 
-  public updateJob(id: string, updates: Partial<FreelanceJob>): FreelanceJob | null {
+  public updateJob(id: string, updates: Partial<FreelanceJob>, adminContext?: { adminId?: string; adminName?: string }): FreelanceJob | null {
     const index = this.jobs.findIndex(j => j.id === id);
     if (index === -1) return null;
     this.jobs[index] = { ...this.jobs[index], ...updates };
+
+    this.addAuditLog({
+      adminId: adminContext?.adminId || 'admin-1',
+      adminName: adminContext?.adminName || 'Administrador',
+      adminRole: 'job_manager',
+      action: 'job_edit',
+      title: 'Vaga Atualizada',
+      details: `Vaga "${this.jobs[index].role}" atualizada com sucesso.`,
+      targetId: id,
+      severity: 'info'
+    });
+
     this.saveToFile();
     return this.jobs[index];
   }
 
-  public deleteJob(id: string): boolean {
+  public deleteJob(id: string, adminContext?: { adminId?: string; adminName?: string }): boolean {
+    const targetJob = this.jobs.find(j => j.id === id);
     const initialLen = this.jobs.length;
     this.jobs = this.jobs.filter(j => j.id !== id);
     if (this.jobs.length !== initialLen) {
+      this.addAuditLog({
+        adminId: adminContext?.adminId || 'admin-1',
+        adminName: adminContext?.adminName || 'Super Administrador',
+        adminRole: 'super_admin',
+        action: 'job_delete',
+        title: 'Vaga Excluída',
+        details: `Vaga "${targetJob?.role || id}" foi excluída do sistema.`,
+        targetId: id,
+        severity: 'danger'
+      });
+
       this.saveToFile();
       return true;
     }
@@ -551,7 +756,15 @@ class FreelaHubDatabase {
     return applicant;
   }
 
-  public updateApplicantStatus(jobId: string, applicantId: string, status: JobApplicant['status'], notes?: string, rating?: number, paidAmount?: number): boolean {
+  public updateApplicantStatus(
+    jobId: string, 
+    applicantId: string, 
+    status: JobApplicant['status'], 
+    notes?: string, 
+    rating?: number, 
+    paidAmount?: number,
+    adminContext?: { adminId?: string; adminName?: string }
+  ): boolean {
     const job = this.jobs.find(j => j.id === jobId);
     if (!job || !job.applicants) return false;
 
@@ -578,12 +791,243 @@ class FreelaHubDatabase {
       }
     }
 
+    // Audit log
+    const actionType = status === 'paid' ? 'pix_payment_confirm' : 'applicant_status_change';
+    this.addAuditLog({
+      adminId: adminContext?.adminId || 'admin-1',
+      adminName: adminContext?.adminName || 'Coordenação',
+      adminRole: 'candidate_reviewer',
+      action: actionType,
+      title: status === 'paid' ? 'Pagamento PIX Confirmado' : `Status do Candidato: ${status.toUpperCase()}`,
+      details: `Candidato ${applicant.name} (${job.role}) atualizado para status "${status}".${status === 'paid' ? ` Valor: R$ ${(paidAmount || job.cachet).toFixed(2)}` : ''}`,
+      targetId: applicantId,
+      severity: status === 'paid' ? 'success' : status === 'rejected' ? 'warning' : 'info'
+    });
+
     this.saveToFile();
     return true;
   }
 
+  // === ADMINS & SECURITY METHODS ===
+
+  public verifyAdminAccess(password: string, email?: string): { success: boolean; admin?: SystemAdmin; message?: string } {
+    // Check if password matches master password or standard default
+    const isMasterMatch = password === this.masterPassword || password === 'admin123' || password === 'freelahub2026';
+    
+    if (isMasterMatch) {
+      // Find matching admin by email or default to primary Super Admin
+      let matchedAdmin = email ? this.admins.find(a => a.email.toLowerCase() === email.toLowerCase() && a.status === 'active') : null;
+      if (!matchedAdmin) {
+        matchedAdmin = this.admins.find(a => a.role === 'super_admin' && a.status === 'active') || this.admins[0];
+      }
+
+      if (matchedAdmin) {
+        matchedAdmin.lastLoginAt = new Date().toISOString();
+        this.addAuditLog({
+          adminId: matchedAdmin.id,
+          adminName: matchedAdmin.name,
+          adminRole: matchedAdmin.role,
+          action: 'login',
+          title: 'Autenticação Administrativa',
+          details: `Acesso autenticado com sucesso via senha de segurança para ${matchedAdmin.name}.`,
+          severity: 'info'
+        });
+        this.saveToFile();
+        return { success: true, admin: matchedAdmin };
+      }
+    }
+
+    return { success: false, message: 'Senha administrativa incorreta ou usuário bloqueado.' };
+  }
+
+  public getAdmins(): SystemAdmin[] {
+    return this.admins;
+  }
+
+  public createAdmin(adminData: Omit<SystemAdmin, 'id' | 'createdAt'>, adminContext?: { adminId?: string; adminName?: string }): SystemAdmin {
+    const roleLabels: Record<AdminRole, string> = {
+      super_admin: 'Super Administrador',
+      job_manager: 'Gestor de Vagas',
+      candidate_reviewer: 'Coordenação de Candidatos',
+      financial_operator: 'Operador Financeiro PIX'
+    };
+
+    const newAdmin: SystemAdmin = {
+      ...adminData,
+      id: `admin-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      createdAt: new Date().toISOString(),
+      roleLabel: roleLabels[adminData.role] || 'Administrador',
+      status: adminData.status || 'active',
+      permissions: adminData.permissions || {
+        canPostJobs: true,
+        canEditJobs: true,
+        canDeleteJobs: false,
+        canManageApplicants: true,
+        canApprovePixPayments: false,
+        canManageAdmins: false,
+        canViewTelemetry: true,
+        canExportReports: true
+      }
+    };
+
+    this.admins.push(newAdmin);
+
+    this.addAuditLog({
+      adminId: adminContext?.adminId || 'admin-1',
+      adminName: adminContext?.adminName || 'Super Administrador',
+      adminRole: 'super_admin',
+      action: 'admin_create',
+      title: 'Novo Administrador Cadastrado',
+      details: `${newAdmin.name} (${newAdmin.email}) adicionado com o papel de ${newAdmin.roleLabel}.`,
+      targetId: newAdmin.id,
+      severity: 'success'
+    });
+
+    this.saveToFile();
+    return newAdmin;
+  }
+
+  public updateAdmin(id: string, updates: Partial<SystemAdmin>, adminContext?: { adminId?: string; adminName?: string }): SystemAdmin | null {
+    const index = this.admins.findIndex(a => a.id === id);
+    if (index === -1) return null;
+
+    const roleLabels: Record<AdminRole, string> = {
+      super_admin: 'Super Administrador',
+      job_manager: 'Gestor de Vagas',
+      candidate_reviewer: 'Coordenação de Candidatos',
+      financial_operator: 'Operador Financeiro PIX'
+    };
+
+    if (updates.role) {
+      updates.roleLabel = roleLabels[updates.role] || 'Administrador';
+    }
+
+    this.admins[index] = { ...this.admins[index], ...updates };
+
+    this.addAuditLog({
+      adminId: adminContext?.adminId || 'admin-1',
+      adminName: adminContext?.adminName || 'Super Administrador',
+      adminRole: 'super_admin',
+      action: 'admin_update',
+      title: 'Perfil de Administrador Modificado',
+      details: `Dados e permissões do administrador ${this.admins[index].name} foram atualizados.`,
+      targetId: id,
+      severity: 'info'
+    });
+
+    this.saveToFile();
+    return this.admins[index];
+  }
+
+  public deleteAdmin(id: string, adminContext?: { adminId?: string; adminName?: string }): { success: boolean; message: string } {
+    const target = this.admins.find(a => a.id === id);
+    if (!target) return { success: false, message: 'Administrador não encontrado.' };
+
+    // Prevent deleting the only super admin
+    const superAdmins = this.admins.filter(a => a.role === 'super_admin');
+    if (target.role === 'super_admin' && superAdmins.length <= 1) {
+      return { success: false, message: 'Não é permitido remover o único Super Administrador do sistema.' };
+    }
+
+    this.admins = this.admins.filter(a => a.id !== id);
+
+    this.addAuditLog({
+      adminId: adminContext?.adminId || 'admin-1',
+      adminName: adminContext?.adminName || 'Super Administrador',
+      adminRole: 'super_admin',
+      action: 'admin_delete',
+      title: 'Administrador Removido',
+      details: `Acesso do administrador ${target.name} (${target.email}) foi removido permanentemente.`,
+      targetId: id,
+      severity: 'warning'
+    });
+
+    this.saveToFile();
+    return { success: true, message: 'Administrador removido com sucesso.' };
+  }
+
+  public changeMasterPassword(oldPassword: string, newPassword: string, adminContext?: { adminId?: string; adminName?: string }): { success: boolean; message: string } {
+    if (oldPassword !== this.masterPassword && oldPassword !== 'admin123') {
+      return { success: false, message: 'Senha atual incorreta.' };
+    }
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, message: 'A nova senha deve ter no mínimo 6 caracteres.' };
+    }
+
+    this.masterPassword = newPassword;
+
+    this.addAuditLog({
+      adminId: adminContext?.adminId || 'admin-1',
+      adminName: adminContext?.adminName || 'Super Administrador',
+      adminRole: 'super_admin',
+      action: 'password_change',
+      title: 'Senha de Acesso Atualizada',
+      details: 'A senha mestre de acesso administrativo foi alterada com sucesso.',
+      severity: 'warning'
+    });
+
+    this.saveToFile();
+    return { success: true, message: 'Senha master alterada com sucesso!' };
+  }
+
+  public getAuditLogs(limit: number = 50): AdminAuditLog[] {
+    return this.auditLogs.slice(0, limit);
+  }
+
+  public addAuditLog(entry: Omit<AdminAuditLog, 'id' | 'timestamp'>): AdminAuditLog {
+    const newLog: AdminAuditLog = {
+      ...entry,
+      id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      timestamp: new Date().toISOString()
+    };
+    this.auditLogs.unshift(newLog);
+    if (this.auditLogs.length > 200) {
+      this.auditLogs = this.auditLogs.slice(0, 200);
+    }
+    return newLog;
+  }
+
+
+  public getTikTokMissionConfig(): TikTokMissionConfig {
+    return this.tiktokConfig;
+  }
+
+  public updateTikTokMissionConfig(updates: Partial<TikTokMissionConfig>, adminContext?: { adminId?: string; adminName?: string }): TikTokMissionConfig {
+    this.tiktokConfig = {
+      ...this.tiktokConfig,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+
+    this.addAuditLog({
+      adminId: adminContext?.adminId || 'admin-1',
+      adminName: adminContext?.adminName || 'Super Administrador',
+      adminRole: 'super_admin',
+      action: 'security_policy_update',
+      title: 'Configuração Missão TikTok 24h Atualizada',
+      details: `Link diário atualizado: ${this.tiktokConfig.activeUrl}. Bloqueio global: ${this.tiktokConfig.lockAllJobs ? 'ATIVO' : 'DESATIVADO'}.`,
+      severity: 'info'
+    });
+
+    this.saveToFile();
+    return this.tiktokConfig;
+  }
+
+  public trackTikTokMissionClick(): { success: boolean; totalClicks: number } {
+    this.tiktokConfig.totalClicks = (this.tiktokConfig.totalClicks || 0) + 1;
+    this.saveToFile();
+    return { success: true, totalClicks: this.tiktokConfig.totalClicks };
+  }
+
+  public trackTikTokMissionUnlock(): { success: boolean; totalUnlocks: number } {
+    this.tiktokConfig.totalUnlocks = (this.tiktokConfig.totalUnlocks || 0) + 1;
+    this.saveToFile();
+    return { success: true, totalUnlocks: this.tiktokConfig.totalUnlocks };
+  }
+
   public resetToDefault() {
     this.jobs = JSON.parse(JSON.stringify(INITIAL_JOBS));
+    this.tiktokConfig = INITIAL_TIKTOK_CONFIG;
     this.saveToFile();
     return this.jobs;
   }

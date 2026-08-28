@@ -14,14 +14,16 @@ import {
   CheckCircle2,
   Gift,
   Coins,
-  MessageCircle
+  MessageCircle,
+  BarChart3,
+  Activity
 } from 'lucide-react';
 import { FreelanceJob, UserProfile } from '../types';
 import { formatCurrency } from '../utils/formatters';
 
 interface NavbarProps {
-  activeTab: 'jobs' | 'candidates' | 'calculator' | 'radar';
-  setActiveTab: (tab: 'jobs' | 'candidates' | 'calculator' | 'radar') => void;
+  activeTab: 'jobs' | 'candidates' | 'calculator' | 'radar' | 'dashboard';
+  setActiveTab: (tab: 'jobs' | 'candidates' | 'calculator' | 'radar' | 'dashboard') => void;
   jobs: FreelanceJob[];
   userProfile: UserProfile | null;
   onOpenUserProfile: () => void;
@@ -239,6 +241,24 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Calculator className="w-4 h-4" />
             <span>Calculadora de Ganhos PIX</span>
+          </button>
+
+          <button
+            id="tab-dashboard"
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap ${
+              activeTab === 'dashboard'
+                ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 shadow-sm shadow-emerald-500/30 font-bold'
+                : 'text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40 border border-emerald-500/30'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Dashboard Indicadores & BI</span>
+            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black uppercase tracking-wider ${
+              activeTab === 'dashboard' ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-500/20 text-emerald-300'
+            }`}>
+              Ao Vivo
+            </span>
           </button>
         </div>
 

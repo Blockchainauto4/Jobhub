@@ -213,19 +213,21 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   const whatsappUrl = createWhatsAppLink(job.contactPhone, whatsappMessage);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-3 sm:p-5 flex justify-center items-start sm:items-center">
-      <div className="relative w-full max-w-lg max-h-[90vh] my-auto flex flex-col rounded-2xl bg-slate-900 border border-emerald-500/40 shadow-2xl text-slate-100 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-2.5 sm:p-4 md:p-6 flex justify-center items-center">
+      <div className="relative w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/40 shadow-2xl text-slate-100 overflow-hidden my-auto">
         
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700/60 shadow-md"
+          title="Fechar"
         >
           <X className="w-5 h-5" />
         </button>
 
         {successSubmitted ? (
-          <div className="text-center p-6 sm:p-7 space-y-4 overflow-y-auto custom-scrollbar">
+          <div className="text-center p-6 sm:p-7 space-y-4 overflow-y-auto min-h-0 flex-1 custom-scrollbar">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
@@ -277,9 +279,9 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col h-full max-h-[90vh] overflow-hidden">
+          <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
             {/* Pinned Modal Header */}
-            <div className="p-5 pb-3.5 shrink-0 border-b border-slate-800 bg-slate-900/95 pr-12">
+            <div className="p-4 sm:p-5 pb-3 sm:pb-3.5 shrink-0 border-b border-slate-800 bg-slate-900/95 pr-14">
               <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Candidatar-se à Vaga</span>
               <h2 className="text-lg sm:text-xl font-black text-white mt-0.5">{job.role}</h2>
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-1">
@@ -290,7 +292,7 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
             </div>
 
             {/* Scrollable Form Body */}
-            <div className="p-5 overflow-y-auto custom-scrollbar space-y-4 flex-1">
+            <div className="p-4 sm:p-5 overflow-y-auto min-h-0 flex-1 space-y-3.5 sm:space-y-4 overscroll-contain custom-scrollbar">
 
             {/* Error message */}
             {formError && (

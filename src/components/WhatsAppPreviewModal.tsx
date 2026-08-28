@@ -114,13 +114,14 @@ ${customNote.trim() ? `💬 *Recado:* ${customNote.trim()}\n\n` : ''}Caso tenha 
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-3 sm:p-5 flex justify-center items-start sm:items-center">
-      <div className="relative w-full max-w-2xl max-h-[90vh] my-auto overflow-y-auto custom-scrollbar rounded-3xl bg-slate-900 border border-emerald-500/50 shadow-2xl shadow-emerald-950/50 p-6 sm:p-8 text-slate-100">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-2.5 sm:p-4 md:p-6 flex justify-center items-center">
+      <div className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] my-auto overflow-y-auto min-h-0 custom-scrollbar rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/50 shadow-2xl shadow-emerald-950/50 p-4 sm:p-6 md:p-8 text-slate-100 overscroll-contain">
         
         {/* Close button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700/60 shadow-md"
           title="Fechar"
         >
           <X className="w-5 h-5" />
