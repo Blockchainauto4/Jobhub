@@ -57,93 +57,80 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   }, [selectedCity]);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-emerald-900/30 p-5 sm:p-8 mb-6 shadow-2xl">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 border border-emerald-900/30 p-4 sm:p-6 mb-5 shadow-xl">
       {/* Background glow effects */}
       <div className="absolute -top-24 -left-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-green-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="relative z-10 flex flex-col items-center text-center max-w-5xl mx-auto">
         
-        {/* FreelaHub Logo & Brand Header */}
-        <div className="flex flex-col items-center mb-5">
-          <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden shadow-2xl shadow-emerald-500/20 border-2 border-emerald-500/40 mb-3 bg-slate-950">
-            <img
-              src="/freelahub_logo.png"
-              alt="FreelaHub Logo Oficial"
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+        {/* Compact Header & Title */}
+        <div className="flex flex-col items-center mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold uppercase tracking-wider mb-2">
+            <Sparkles className="w-3 h-3" />
+            <span>Vagas Abertas • Pagamento via PIX • Brasil</span>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Vagas • Profissionais • Brasil</span>
-          </div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">
+            Vagas de Freelancer em Tempo Real{' '}
+            <span className="bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+              • Escalas & Cachê no PIX
+            </span>
+          </h1>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-3">
-          A Maior Rede de Freelancers do Brasil <br className="hidden sm:inline" />
-          <span className="bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-500 bg-clip-text text-transparent">
-            Pagamento no PIX & Cobertura por Cidade e Bairro
-          </span>
-        </h1>
-
-        <p className="text-sm sm:text-base text-slate-300 max-w-2xl mb-6 leading-relaxed">
-          Garçons, bartenders, caixa/finanças, limpeza e carregadores organizados por <strong>Estado, Cidade e Bairro</strong> com exigência de <strong>cursos técnicos & certificações</strong>.
-        </p>
-
         {/* Action Buttons Bar */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-6 w-full">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-4 w-full">
           {onOpenMissionsModal && (
             <button
               onClick={onOpenMissionsModal}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-amber-500/20 hover:from-amber-500/30 hover:to-emerald-500/30 border border-amber-500/50 text-amber-300 text-xs font-black transition shadow-lg shadow-amber-500/10 animate-pulse"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-500/20 via-rose-500/20 to-amber-500/20 hover:from-pink-500/30 hover:to-amber-500/30 border border-pink-500/40 text-pink-300 text-xs font-black transition shadow-sm animate-pulse"
             >
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>🎁 Missões TikTok & Kwai: R$ 50,00 + Grupo VIP WhatsApp</span>
+              <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+              <span>⚡ Missão TikTok 24h & R$ 50,00</span>
             </button>
           )}
 
           {onOpenCertificationsGuide && (
             <button
               onClick={onOpenCertificationsGuide}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-950/70 hover:bg-amber-900/80 border border-amber-500/40 text-amber-300 text-xs font-bold transition shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/70 hover:bg-amber-900/80 border border-amber-500/40 text-amber-300 text-xs font-bold transition shadow-sm"
             >
-              <GraduationCap className="w-4 h-4 text-amber-400" />
+              <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
               <span>Cursos & Certificações</span>
             </button>
           )}
 
           <button
             onClick={onOpenSkillsDirectory}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold transition shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold transition shadow-sm"
           >
-            <Tag className="w-4 h-4 text-emerald-400" />
+            <Tag className="w-3.5 h-3.5 text-emerald-400" />
             <span>Habilidades</span>
           </button>
 
           <button
             onClick={onOpenCreateJob}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 text-xs font-extrabold transition shadow-lg shadow-emerald-500/20"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 text-xs font-extrabold transition shadow-md shadow-emerald-500/20"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>Publicar Vaga</span>
           </button>
         </div>
 
         {/* Search, State, City and Neighborhood Filters */}
-        <div className="w-full space-y-3">
+        <div className="w-full space-y-2.5">
           
           {/* Main Search Input */}
           <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               id="input-search-jobs"
               type="text"
-              placeholder="Buscar por função (Garçom, Caixa, Bartender), bairro, endereço ou habilidades..."
+              placeholder="Buscar por cargo (Garçom, Bartender, Caixa, Limpeza), local ou bairro..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition shadow-inner"
+              className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition shadow-inner"
             />
             {searchTerm && (
               <button

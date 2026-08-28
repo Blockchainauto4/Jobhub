@@ -71,11 +71,8 @@ export default function App() {
       if (cached) {
         const parsed = JSON.parse(cached);
         setUserProfile(parsed);
-      } else {
-        // First access: prompt onboarding modal to setup profile/company
-        setIsFirstAccessOnboarding(true);
-        setIsUserProfileOpen(true);
       }
+      // Keep initial view clean and directly on the job listings without blocking popups
     } catch (err) {
       console.warn('Erro ao carregar perfil em cache:', err);
     }
@@ -306,12 +303,9 @@ export default function App() {
         
         {/* Tab 1: Feed de Vagas */}
         {activeTab === 'jobs' && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             
-            {/* National Platform Stats */}
-            <NationalStatsBanner onNavigateToDashboard={() => setActiveTab('dashboard')} />
-
-            {/* Main Interactive Hero Banner with Search, State/City/Neighborhood Filters */}
+            {/* Main Interactive Hero Search & Instant Filters */}
             <HeroBanner
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
@@ -389,7 +383,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Jobs List / Grid */}
+            {/* Jobs List / Grid - Immediately Front & Center */}
             {isLoading && jobs.length === 0 ? (
               <div className="text-center py-16 space-y-3">
                 <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mx-auto" />
@@ -437,6 +431,11 @@ export default function App() {
                 ))}
               </div>
             )}
+
+            {/* National Platform Stats & Transparency (Below Job Listings) */}
+            <div className="pt-6">
+              <NationalStatsBanner onNavigateToDashboard={() => setActiveTab('dashboard')} />
+            </div>
           </div>
         )}
 
