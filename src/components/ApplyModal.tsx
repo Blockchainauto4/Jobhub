@@ -213,33 +213,33 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   const whatsappUrl = createWhatsAppLink(job.contactPhone, whatsappMessage);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-2.5 sm:p-4 md:p-6 flex justify-center items-center">
-      <div className="relative w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/40 shadow-2xl text-slate-100 overflow-hidden my-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-2 sm:p-4 flex justify-center items-start sm:items-center">
+      <div className="relative w-full max-w-lg my-2 sm:my-auto max-h-[calc(100dvh-1rem)] sm:max-h-[88vh] flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/40 shadow-2xl text-slate-100 overflow-hidden">
         
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700/60 shadow-md"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700/60 shadow-md"
           title="Fechar"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         {successSubmitted ? (
-          <div className="text-center p-6 sm:p-7 space-y-4 overflow-y-auto min-h-0 flex-1 custom-scrollbar">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500 flex items-center justify-center mx-auto">
+          <div className="text-center p-5 sm:p-7 space-y-4 overflow-y-auto min-h-0 flex-1 custom-scrollbar">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
             <div>
-              <h3 className="text-2xl font-black text-white">Candidatura Enviada!</h3>
-              <p className="text-sm text-slate-300 mt-1">
+              <h3 className="text-xl sm:text-2xl font-black text-white">Candidatura Enviada!</h3>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1">
                 Seus dados foram registrados com sucesso no sistema.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-left space-y-2 text-xs">
+            <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950 border border-slate-800 text-left space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-slate-400">Vaga:</span>
                 <span className="font-bold text-white">{job.role}</span>
@@ -263,7 +263,7 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 font-black text-sm shadow-lg shadow-green-500/20 transition transform active:scale-95"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-green-500/20 transition transform active:scale-95"
               >
                 <Phone className="w-4 h-4" />
                 <span>Avisar no WhatsApp do Contratante</span>
@@ -281,10 +281,10 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0 flex-1 overflow-hidden">
             {/* Pinned Modal Header */}
-            <div className="p-4 sm:p-5 pb-3 sm:pb-3.5 shrink-0 border-b border-slate-800 bg-slate-900/95 pr-14">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Candidatar-se à Vaga</span>
-              <h2 className="text-lg sm:text-xl font-black text-white mt-0.5">{job.role}</h2>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-1">
+            <div className="p-3.5 sm:p-4 pb-2.5 sm:pb-3 shrink-0 border-b border-slate-800 bg-slate-900 sticky top-0 z-10 pr-12">
+              <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Candidatar-se à Vaga</span>
+              <h2 className="text-base sm:text-lg font-black text-white mt-0.5">{job.role}</h2>
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400 mt-0.5">
                 <span>📍 {job.neighborhood || ''}, {job.city || ''} ({job.state || 'SP'})</span>
                 <span>•</span>
                 <span className="font-bold text-emerald-400">{formatCurrency(job.cachet)}</span>
@@ -292,7 +292,7 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
             </div>
 
             {/* Scrollable Form Body */}
-            <div className="p-4 sm:p-5 overflow-y-auto min-h-0 flex-1 space-y-3.5 sm:space-y-4 overscroll-contain custom-scrollbar">
+            <div className="p-3.5 sm:p-4 overflow-y-auto min-h-0 flex-1 space-y-3 sm:space-y-3.5 overscroll-contain custom-scrollbar">
 
             {/* Error message */}
             {formError && (

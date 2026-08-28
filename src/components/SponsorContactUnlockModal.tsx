@@ -227,17 +227,17 @@ Status: ✅ CONTRATO LIBERADO & EMITIDO DIGITALMENTE`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-md p-2.5 sm:p-4 md:p-6 flex justify-center items-center animate-fade-in">
-      <div className="relative w-full max-w-2xl max-h-[94dvh] sm:max-h-[90vh] my-auto flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border-2 border-pink-500/50 shadow-2xl shadow-pink-950/60 text-slate-100 overflow-hidden min-h-0">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-md p-2 sm:p-4 flex justify-center items-start sm:items-center animate-fade-in">
+      <div className="relative w-full max-w-2xl max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] my-2 sm:my-auto flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border-2 border-pink-500/50 shadow-2xl shadow-pink-950/60 text-slate-100 overflow-hidden min-h-0">
         
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 z-20 p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700/60 shadow-md"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-400 hover:text-white transition border border-slate-700/60 shadow-md"
           title="Fechar"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         {/* Modal Header */}
