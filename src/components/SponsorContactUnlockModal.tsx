@@ -61,12 +61,27 @@ export const SponsorContactUnlockModal: React.FC<SponsorContactUnlockModalProps>
   useEffect(() => {
     if (isOpen) {
       fetch('/api/tiktok-mission')
-        .then(res => res.json())
+        .then(res => {
+          const contentType = res.headers.get('content-type') || '';
+          if (res.ok && contentType.includes('application/json')) {
+            return res.json();
+          }
+          return {
+            activeUrl: 'https://www.tiktok.com/d/1/ZS9BMchsVwW1a-x3E0j/',
+            missionTitle: 'Missão TikTok 24h Oficial • Indicação & Desbloqueio',
+            formattedRemaining: '23h 59m'
+          };
+        })
         .then(data => {
           setTiktokMissionData(data);
         })
         .catch(err => {
           console.warn('Erro ao carregar link 24h do TikTok:', err);
+          setTiktokMissionData({
+            activeUrl: 'https://www.tiktok.com/d/1/ZS9BMchsVwW1a-x3E0j/',
+            missionTitle: 'Missão TikTok 24h Oficial • Indicação & Desbloqueio',
+            formattedRemaining: '23h 59m'
+          });
         });
     }
   }, [isOpen]);

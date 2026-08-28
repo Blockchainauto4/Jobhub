@@ -132,15 +132,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (showLoading) setIsLoading(true);
     try {
       const res = await fetch('/api/admin/metrics');
-      if (!res.ok) throw new Error('Falha ao obter métricas administrativas');
-      const data: AdminDashboardMetrics = await res.json();
-      setMetrics(data);
-      if (data.missions?.liveEvents) {
-        setLiveStreamEvents(data.missions.liveEvents);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data: AdminDashboardMetrics = await res.json();
+        setMetrics(data);
+        if (data.missions?.liveEvents) {
+          setLiveStreamEvents(data.missions.liveEvents);
+        }
       }
       setLastRefreshedAt(new Date());
     } catch (err) {
-      console.error('Erro ao carregar dados do dashboard:', err);
+      console.warn('Erro ao carregar dados do dashboard da API:', err);
     } finally {
       if (showLoading) setIsLoading(false);
     }

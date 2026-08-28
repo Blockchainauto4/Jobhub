@@ -33,11 +33,13 @@ const CATEGORIES = [
   'Audiovisual & Montagem'
 ];
 
+import { FALLBACK_JOBS } from './data/initialJobs';
+
 const USER_PROFILE_STORAGE_KEY = 'freelahub_user_profile';
 
 export default function App() {
-  const [jobs, setJobs] = useState<FreelanceJob[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [jobs, setJobs] = useState<FreelanceJob[]>(FALLBACK_JOBS);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'jobs' | 'candidates' | 'calculator' | 'radar' | 'dashboard'>('jobs');
   
   // User Profile in LocalStorage (Cache)
@@ -177,15 +179,16 @@ export default function App() {
   // Fetch initial jobs
   const fetchJobs = async () => {
     try {
-      setIsLoading(true);
       const res = await fetch('/api/jobs');
-      if (!res.ok) throw new Error('Falha ao obter vagas');
-      const data = await res.json();
-      setJobs(data);
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setJobs(data);
+        }
+      }
     } catch (err) {
-      console.error('Error fetching jobs:', err);
-    } finally {
-      setIsLoading(false);
+      console.warn('API /api/jobs offline, using cached/fallback job dataset:', err);
     }
   };
 
