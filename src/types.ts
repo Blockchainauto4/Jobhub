@@ -63,6 +63,8 @@ export interface JobApplicant {
   state?: BrazilState;
   city?: string;
   neighborhood?: string;
+  cpf?: string;
+  cnpj?: string;
   paidAmount?: number;
   paidAt?: string;
   notes?: string;

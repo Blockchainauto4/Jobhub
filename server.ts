@@ -4,6 +4,7 @@ import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import { db } from './server/db.js';
 import { parseWhatsAppJobMessage, generateWhatsAppBroadcast } from './server/gemini.js';
+import { initPostgresTables, syncJobsToPostgres } from './server/postgres.js';
 
 dotenv.config();
 
@@ -64,6 +65,15 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Initialize PostgreSQL / Neon DB if DATABASE_URL is present
+  if (process.env.DATABASE_URL) {
+    initPostgresTables().then((success) => {
+      if (success) {
+        syncJobsToPostgres(db.getJobs()).catch(err => console.warn('Background sync error:', err));
+      }
+    }).catch(err => console.warn('Postgres init error:', err));
+  }
+
   // === API ROUTES ===
   
   // Health & Database status
@@ -94,6 +104,9 @@ async function startServer() {
 
   app.post('/api/db-reset', (req, res) => {
     const freshJobs = db.resetToDefault();
+    if (process.env.DATABASE_URL) {
+      syncJobsToPostgres(freshJobs).catch(err => console.warn('Postgres sync error on reset:', err));
+    }
     res.json({ success: true, message: 'Banco reiniciado com os dados oficiais FreelaHub', jobs: freshJobs });
   });
 
@@ -127,6 +140,9 @@ async function startServer() {
       }
 
       const newJob = db.createJob(jobData);
+      if (process.env.DATABASE_URL) {
+        syncJobsToPostgres(db.getJobs()).catch(err => console.warn('Postgres sync error:', err));
+      }
       res.status(201).json(newJob);
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -139,6 +155,9 @@ async function startServer() {
       if (!updated) {
         return res.status(404).json({ error: 'Vaga não encontrada' });
       }
+      if (process.env.DATABASE_URL) {
+        syncJobsToPostgres(db.getJobs()).catch(err => console.warn('Postgres sync error:', err));
+      }
       res.json(updated);
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -150,6 +169,9 @@ async function startServer() {
       const deleted = db.deleteJob(req.params.id);
       if (!deleted) {
         return res.status(404).json({ error: 'Vaga não encontrada' });
+      }
+      if (process.env.DATABASE_URL) {
+        syncJobsToPostgres(db.getJobs()).catch(err => console.warn('Postgres sync error:', err));
       }
       res.json({ success: true, message: 'Vaga removida com sucesso' });
     } catch (e: any) {
@@ -180,6 +202,10 @@ async function startServer() {
 
       if (!applicant) {
         return res.status(404).json({ error: 'Vaga não encontrada' });
+      }
+
+      if (process.env.DATABASE_URL) {
+        syncJobsToPostgres(db.getJobs()).catch(err => console.warn('Postgres sync error:', err));
       }
 
       res.status(201).json(applicant);
