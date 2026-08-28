@@ -66,8 +66,8 @@ export const CertificationsDirectoryModal: React.FC<CertificationsDirectoryModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex justify-center items-start sm:items-center p-2 sm:p-4">
-      <div className="relative w-full max-w-4xl max-h-[calc(100dvh-1rem)] sm:max-h-[88vh] my-2 sm:my-auto flex flex-col bg-slate-900 border border-emerald-500/40 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden min-h-0">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/90 backdrop-blur-md flex justify-center items-center p-2 sm:p-4 animate-fade-in">
+      <div className="relative w-full max-w-4xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col bg-slate-900 border border-emerald-500/40 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden min-h-0">
         
         {/* Modal Header (Pinned) */}
         <div className="p-3.5 sm:p-5 shrink-0 bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 border-b border-emerald-900/50">

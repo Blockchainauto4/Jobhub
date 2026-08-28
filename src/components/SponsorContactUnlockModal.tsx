@@ -227,8 +227,8 @@ Status: ✅ CONTRATO LIBERADO & EMITIDO DIGITALMENTE`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-md p-2 sm:p-4 flex justify-center items-start sm:items-center animate-fade-in">
-      <div className="relative w-full max-w-2xl max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] my-2 sm:my-auto flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border-2 border-pink-500/50 shadow-2xl shadow-pink-950/60 text-slate-100 overflow-hidden min-h-0">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/90 backdrop-blur-md p-2 sm:p-4 flex justify-center items-center animate-fade-in">
+      <div className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border-2 border-pink-500/50 shadow-2xl shadow-pink-950/60 text-slate-100 overflow-hidden min-h-0">
         
         {/* Close Button */}
         <button
@@ -241,39 +241,39 @@ Status: ✅ CONTRATO LIBERADO & EMITIDO DIGITALMENTE`;
         </button>
 
         {/* Modal Header */}
-        <div className="p-4 sm:p-6 pb-3.5 sm:pb-4 shrink-0 bg-gradient-to-r from-slate-950 via-slate-900 to-pink-950/50 border-b border-slate-800 pr-14">
-          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+        <div className="p-3.5 sm:p-5 pb-3 sm:pb-3.5 shrink-0 bg-gradient-to-r from-slate-950 via-slate-900 to-pink-950/50 border-b border-slate-800 pr-12">
+          <div className="flex flex-wrap items-center gap-1.5 mb-1">
             {isUnlocked ? (
-              <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
-                <Unlock className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
+                <Unlock className="w-3 h-3" />
                 <span>CONTRATO & WHATSAPP LIBERADOS COM SUCESSO</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-black bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-300 border border-pink-500/40">
-                <Lock className="w-3.5 h-3.5" />
-                <span>MISSÃO TIKTOK 24H • LIBERAÇÃO DE CONTRATO & CONTATO</span>
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-300 border border-pink-500/40">
+                <Lock className="w-3 h-3" />
+                <span>MISSÃO TIKTOK 24H • LIBERAÇÃO DE CONTRATO</span>
               </span>
             )}
 
             {tiktokMissionData?.formattedRemaining && !isUnlocked && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
                 <Clock className="w-3 h-3 text-pink-400" />
-                <span>Link Válido por: {tiktokMissionData.formattedRemaining}</span>
+                <span>Válido por: {tiktokMissionData.formattedRemaining}</span>
               </span>
             )}
           </div>
 
-          <h2 className="text-lg sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-base sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
             <span>🚨 {job.role}</span>
           </h2>
 
-          <p className="text-xs text-slate-300 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
             {job.locationName || 'Local Oficial'} • <span className="text-emerald-400 font-bold">Cachê {formatCurrency(job.cachet)}</span> • {job.paymentDetails}
           </p>
         </div>
 
         {/* Scrollable Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto min-h-0 flex-1 custom-scrollbar space-y-4 sm:space-y-5 overscroll-contain">
+        <div className="p-3.5 sm:p-5 overflow-y-auto min-h-0 flex-1 custom-scrollbar space-y-3 sm:space-y-4 overscroll-contain pb-6">
           
           {/* Requirement Alert if Men Only or Urgent */}
           {(job.genderRequirement === 'homens' || job.role.toUpperCase().includes('HOMENS')) && (

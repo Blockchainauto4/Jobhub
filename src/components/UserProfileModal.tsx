@@ -290,8 +290,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-2 sm:p-4 flex justify-center items-start sm:items-center">
-      <div className="relative w-full max-w-lg my-2 sm:my-auto max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/50 shadow-2xl shadow-emerald-950/60 text-slate-100 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/90 backdrop-blur-md p-2 sm:p-4 flex justify-center items-center animate-fade-in">
+      <div className="relative w-full max-w-lg max-h-[92dvh] sm:max-h-[88vh] flex flex-col rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/50 shadow-2xl shadow-emerald-950/60 text-slate-100 overflow-hidden min-h-0">
         
         {/* Close Button */}
         <button
@@ -359,7 +359,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
 
             {/* Scrollable Form Body */}
-            <div className="p-3.5 sm:p-4 overflow-y-auto min-h-0 flex-1 space-y-3 sm:space-y-3.5 overscroll-contain custom-scrollbar">
+            <div className="p-3.5 sm:p-4 overflow-y-auto min-h-0 flex-1 space-y-3 sm:space-y-3.5 overscroll-contain custom-scrollbar pb-6">
               {/* Error banner if invalid format */}
               {formError && (
                 <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/50 text-rose-300 text-xs flex items-start gap-2 animate-shake">

@@ -114,8 +114,8 @@ ${customNote.trim() ? `💬 *Recado:* ${customNote.trim()}\n\n` : ''}Caso tenha 
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-2 sm:p-4 flex justify-center items-start sm:items-center">
-      <div className="relative w-full max-w-2xl max-h-[calc(100dvh-1rem)] sm:max-h-[88vh] my-2 sm:my-auto overflow-y-auto min-h-0 custom-scrollbar rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/50 shadow-2xl shadow-emerald-950/50 p-4 sm:p-6 md:p-8 text-slate-100 overscroll-contain">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/90 backdrop-blur-md p-2 sm:p-4 flex justify-center items-center animate-fade-in">
+      <div className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] overflow-y-auto min-h-0 custom-scrollbar rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/50 shadow-2xl shadow-emerald-950/50 p-4 sm:p-6 md:p-8 text-slate-100 overscroll-contain">
         
         {/* Close button */}
         <button

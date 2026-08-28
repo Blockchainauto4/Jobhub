@@ -66,8 +66,8 @@ export const DatabaseSettingsModal: React.FC<DatabaseSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-sm p-2.5 sm:p-4 md:p-6 flex justify-center items-center">
-      <div className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] my-auto overflow-y-auto min-h-0 custom-scrollbar rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-4 sm:p-6 md:p-8 text-slate-100 overscroll-contain">
+    <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/90 backdrop-blur-md p-2.5 sm:p-4 md:p-6 flex justify-center items-center animate-fade-in">
+      <div className="relative w-full max-w-2xl max-h-[92dvh] sm:max-h-[88vh] overflow-y-auto min-h-0 custom-scrollbar rounded-2xl sm:rounded-3xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-4 sm:p-6 md:p-8 text-slate-100 overscroll-contain">
         
         {/* Close Button */}
         <button
